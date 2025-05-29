@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日历任务复刻 - AI待办</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: #fff;
+        }
+        .phone-mock {
+            width: 390px;
+            height: 844px;
+            border-radius: 40px;
+            margin: 0 auto;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            overflow: hidden;
+            background: transparent;
+        }
+           /* 未完成 */
+    .complete-btn[data-complete="false"] {
+      border-color: #9d5aef;
+      background: #fff;
+    }
+    .complete-btn[data-complete="false"]::after {
+      content: '';
+      display: block;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: transparent;
+    }
+
+    /* 完成 */
+    .complete-btn[data-complete="true"] {
+      background: #9d5aef;
+      border-color: #9d5aef;
+    }
+    .complete-btn[data-complete="true"]::after {
+      content: '';
+      display: block;
+      width: 16px; height: 16px;
+      background: url('data:image/svg+xml;utf8,<svg fill=\"none\" stroke=\"white\" stroke-width=\"3\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M5 13l4 4L19 7\"/></svg>') center/contain no-repeat;
+    }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+<div class="phone-mock flex flex-col">
+    <!-- iPhone状态栏模拟（极简黑色风格） -->
+    <div class="flex items-center justify-between px-5 pt-6 pb-2">
+        <div class="text-black text-[20px] font-bold font-sans">9:41</div>
+        <div class="flex items-center gap-2">
+            <!-- 信号 -->
+            <svg class="w-7 h-5" viewBox="0 0 28 20" fill="none"><rect x="0.5" y="14.5" width="2.5" height="4.5" rx="1.25" fill="#111"/><rect x="5" y="11" width="2.5" height="8" rx="1.25" fill="#111"/><rect x="9.5" y="7.5" width="2.5" height="11.5" rx="1.25" fill="#111"/><rect x="14" y="4" width="2.5" height="15" rx="1.25" fill="#111"/></svg>
+            <!-- WiFi -->
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none"><path d="M2 8.82C7.06 4.4 16.94 4.4 22 8.82" stroke="#111" stroke-width="2" stroke-linecap="round"/><path d="M5.5 12.5C8.54 10.04 15.46 10.04 18.5 12.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><path d="M8.5 16.5C10.09 15.17 13.91 15.17 15.5 16.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="19" r="1" fill="#111"/></svg>
+            <!-- 电池 -->
+            <svg class="w-8 h-5" viewBox="0 0 32 16" fill="none"><rect x="1" y="3" width="26" height="10" rx="3" fill="#fff" stroke="#111" stroke-width="2"/><rect x="28" y="6" width="3" height="4" rx="1" fill="#111"/><rect x="4" y="6" width="20" height="4" rx="2" fill="#111"/></svg>
+        </div>
+    </div>
+
+          <!-- 顶部导航栏（侧边栏+tab+搜索按钮） -->
+          <div class="flex items-center w-full px-4 pt-2 pb-2 bg-white">
+            <!-- 侧边栏按钮 -->
+            <button id="sidebar-btn" class="mr-2 flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100">
+              <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <!-- Tab栏（待办、灵感、记账） -->
+            <div class="tab-container flex-1 flex items-center justify-center relative bg-white" style="height:40px;">
+              <button class="flex-1 h-full flex items-center justify-center bg-transparent text-gray-400 text-base border-0 tab-btn" id="tab-task">待办</button>
+              <button class="flex-1 h-full flex items-center justify-center bg-transparent text-gray-400 text-base border-0 tab-btn" id="tab-idea">灵感</button>
+              <button class="flex-1 h-full flex items-center justify-center bg-transparent text-gray-400 text-base border-0 tab-btn" id="tab-bill">记账</button>
+              <div class="absolute left-0 bottom-0 w-1/3 flex justify-center tab-underline" style="height:0;transition:left 0.2s;left: 2%;">
+                <div class="w-8 h-1 bg-purple-600 rounded-full"></div>
+              </div>
+            </div>
+            <!-- 搜索按钮 -->
+            <button id="top-search-bar" class="ml-2 flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100">
+              <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </button>
+          </div>
+    
+
+    <!-- 日期选择器 -->
+    <div class="flex flex-col px-4 mt-0 bg-white rounded-2xl shadow-lg p-2" style="padding-top:0;">
+        <!-- 周视图 -->
+        <div class="flex flex-1 justify-between gap-2">
+            <div class="flex flex-col items-center w-14 bg-white rounded-1xl py-2  transition-all cursor-pointer">             
+                <span class="text-xs text-gray-400">日</span>
+                <span class="text-lg font-bold text-gray-800">18</span>
+            </div>
+            <div class="flex flex-col items-center w-14 bg-white rounded-1xl py-2  transition-all cursor-pointer">             
+                <span class="text-xs text-gray-400">一</span>
+                <span class="text-lg font-bold text-gray-800">19</span>
+            </div>
+            <div class="flex flex-col items-center w-14 bg-white rounded-1xl py-2  transition-all cursor-pointer relative">           
+                <div class="absolute -bottom-[0px] left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                <span class="text-xs text-purple-600">二</span>
+                <span class="text-lg font-bold text-gray-800">20</span>
+            </div>
+            <div class="flex flex-col items-center w-14 bg-white rounded-1xl py-2  transition-all cursor-pointer">             
+                <span class="text-xs text-gray-400">三</span>
+                <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
+                    <span class="text-lg font-bold text-white">21</span>
+                </div>
+            </div>
+            <div class="flex flex-col items-center w-14 bg-white rounded-1xl py-2  transition-all cursor-pointer">                
+                <span class="text-xs text-gray-400">四</span>
+                <span class="text-lg font-bold text-gray-800">22</span>
+            </div>
+            <div class="flex flex-col items-center w-14 bg-white rounded-1xl py-2  transition-all cursor-pointer">           
+                <span class="text-xs text-gray-400">五</span>
+                <span class="text-lg font-bold text-gray-800">23</span>
+            </div>
+            <div class="flex flex-col items-center w-14 bg-white rounded-1xl py-2  transition-all cursor-pointer">
+                <span class="text-xs text-gray-400">六</span>
+                <span class="text-lg font-bold text-gray-800">24</span>
+            </div>
+        </div>
+
+        <!-- 下拉条 -->
+        <div class="flex justify-center">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full cursor-pointer active:cursor-grabbing" id="calendar-drag-handle"></div>
+        </div>
+        <!-- 月视图（默认隐藏） -->
+        <div id="month-calendar" class="hidden fixed left-1/2 top-[120px] z-40 w-[370px] max-w-full bg-white rounded-2xl shadow-2xl p-4" style="transform:translateX(-50%);">
+            <!-- 月份选择器 -->
+            <div class="flex items-center justify-between mb-4">
+                <button class="p-2 hover:bg-gray-100 rounded-full" onclick="changeMonth(-1)">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <span class="text-lg font-semibold" id="current-month">2025年5月</span>
+                <button class="p-2 hover:bg-gray-100 rounded-full" onclick="changeMonth(1)">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
+            <!-- 星期表头 -->
+            <div class="grid grid-cols-7 gap-1 mb-2">
+                <div class="text-center text-xs text-gray-500">日</div>
+                <div class="text-center text-xs text-gray-500">一</div>
+                <div class="text-center text-xs text-gray-500">二</div>
+                <div class="text-center text-xs text-gray-500">三</div>
+                <div class="text-center text-xs text-gray-500">四</div>
+                <div class="text-center text-xs text-gray-500">五</div>
+                <div class="text-center text-xs text-gray-500">六</div>
+            </div>
+            <!-- 日历网格 -->
+            <div class="grid grid-cols-7 gap-x-1 gap-y-4" id="calendar-grid">
+                <!-- 日期和事项通过JS动态生成 -->
+            </div>
+            <!-- 新增下拉条 -->
+            <div class="flex justify-center">
+                <div class="w-12 h-1.5 bg-gray-200 rounded-full cursor-pointer" id="month-calendar-close-bar"></div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- 事项卡片列表（高保真+时间轴，图二样式） -->
+    <div id="calendar-task-list" class="flex-1 overflow-y-auto px-4 pb-4 space-y-6 relative" style="padding-bottom:300px;">
+        <!-- 时间轴竖线 -->
+        <div class="absolute left-10 top-10 bottom-0 w-0.5 bg-gradient-to-b from-purple-200 to-purple-100 z-0"></div>
+        <!-- AI总结卡片 -->
+        <div class="relative flex items-start gap-4 mb-2">
+            <div class="flex flex-col items-center z-10 min-w-[48px]">
+                <div class="flex-1"></div>             
+                  <div class="w-6 h-6 rounded-full border-2 border-purple-500 mt- flex items-center justify-center">
+                    <div class="w-5 h-5 rounded-full bg-white flex items-center justify-center">
+                      <svg class="w-4 h-4 text-purple-500" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 19a4 4 0 0 1 0-8 5 5 0 0 1 9.9-1.3A4 4 0 1 1 18 19H6z" />
+                      </svg>
+                    </div>
+                  </div>               
+                <div class="flex-1"></div>
+            </div>
+            <div class="flex-1 bg-gradient-to-br from-purple-50 to-white rounded-2xl shadow p-4 flex flex-col gap-2 self-center border border-purple-100">
+                <div class="text-sm text-gray-700 leading-relaxed">
+                    今天你有4个重要事项，安排紧凑但节奏合理。虽然忙碌，也能获得一些感悟。Have a nice day！
+                </div>
+            </div>
+        </div>
+        <!-- 事项1 -->
+        <div class="relative flex items-start gap-4">
+            <div class="flex flex-col items-center z-10 min-w-[48px]">
+                <div class="flex-1"></div>
+                <!-- <div class="w-6 h-6 rounded-full border-2 border-purple-500 mt-1 bg-white"></div> -->     
+                <div class="w-2 h-2 rounded-full bg-purple-500 mt-1 flex items-center justify-center">
+                    <!-- <svg t="1748417072696" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4463" width="15" height="15"><path d="M512 237.52704c177.85856 0 322.56 144.70144 322.56 322.56s-144.70144 322.56-322.56 322.56-322.56-144.70144-322.56-322.56 144.70144-322.56 322.56-322.56m0-71.68c-217.73312 0-394.24 176.50688-394.24 394.24s176.50688 394.24 394.24 394.24 394.24-176.50688 394.24-394.24-176.50688-394.24-394.24-394.24z" fill="#ffffff" p-id="4464"></path><path d="M732.16 570.32704h-199.68v-199.68a35.84 35.84 0 1 0-71.68 0v235.52a35.84 35.84 0 0 0 35.84 35.84h235.52a35.84 35.84 0 1 0 0-71.68zM279.6288 69.67296a35.69664 35.69664 0 0 0-23.01952 8.38656L76.19072 229.44768a35.84 35.84 0 0 0 46.07488 54.912L302.68928 132.9664a35.84 35.84 0 0 0-23.06048-63.29344zM744.3712 69.67296a35.84 35.84 0 0 0-23.05536 63.29856l180.41856 151.38816a35.6864 35.6864 0 0 0 23.01952 8.38656 35.84 35.84 0 0 0 23.05536-63.29856L767.3856 78.05952a35.6608 35.6608 0 0 0-23.0144-8.38656z" fill="#ffffff" p-id="4465"></path></svg> -->
+                        <path d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>                  
+                <span class="text-xs text-purple-400 mt-1">09:30</span>
+                <div class="flex-1"></div>
+            </div>
+            <div class="flex-1 bg-white rounded-2xl shadow p-4 flex flex-col gap-0.5 self-center relative">
+                <!-- 完成状态按钮 -->
+                <button class="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full border-2 complete-btn" data-complete="true"></button>
+                <div class="flex items-center gap-2 mb-0.5">
+                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span class="text-xs text-purple-500 font-medium">09:30-10:00（30分钟）</span>
+                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <path d="M23 4v6h-6"></path>
+                        <path d="M1 20v-6h6"></path>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                        <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+                    </svg>
+                </div>
+                <!-- <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">《Grocery shopping app design》</span>
+                </div> -->
+                <div class="font-semibold text-gray-900 text-lg">前日回顾</div>
+                <!-- <div class="text-xs text-gray-500">AI调研市场趋势，收集竞品信息。</div> -->
+            </div>
+        </div>
+        <!-- 事项2 -->
+        <div class="relative flex items-start gap-4">
+            <div class="flex flex-col items-center z-10 min-w-[48px]">
+                <div class="flex-1"></div>
+                <!-- <div class="w-6 h-6 rounded-full border-2 border-purple-400 mt-1 bg-white"></div> -->                
+                <div class="w-2 h-2 rounded-full bg-purple-500 mt-1 flex items-center justify-center">
+  
+                  </div>                             
+                <span class="text-xs text-purple-400 mt-1">13:00</span>
+                <div class="flex-1"></div>
+            </div>
+            <div class="flex-1 bg-white rounded-2xl shadow p-4 flex flex-col gap-0.5 self-center relative">
+                <!-- 完成状态按钮 -->
+                <button class="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full border-2 complete-btn" data-complete="false"></button>
+                <div class="flex items-center gap-2 mb-0.5">
+                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span class="text-xs text-purple-500 font-medium">13:00-14:00（1小时）</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">《Uber Eats redesign challenge》</span>
+                </div>
+                <div class="font-semibold text-gray-900 text-lg">Wireframe Review</div>
+                <!-- 图片预览 -->
+                <div class="flex gap-2 mt-2">
+                    <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=80&h=80&q=80" class="w-16 h-16 rounded-xl object-cover border"/>
+                    <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=80&h=80&q=80" class="w-16 h-16 rounded-xl object-cover border"/>
+                </div>
+                <!-- 位置信息 -->
+                <div class="flex items-center gap-2 mt-2">
+                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <path d="M17.657 16.657L13.414 12.414a4 4 0 1 0-1.414 1.414l4.243 4.243a1 1 0 0 0 1.414-1.414z"/>
+                        <path d="M15 11a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/>
+                    </svg>
+                    <span class="text-xs text-blue-600">上海市静安区南京西路699号</span>
+                </div>
+            </div>
+        </div>
+        <!-- 事项3 -->
+        <div class="relative flex items-start gap-4">
+            <div class="flex flex-col items-center z-10 min-w-[48px]">
+                <div class="flex-1"></div>
+                <div class="w-2 h-2 rounded-full border-2 border-purple-400 mt-1 bg-white"></div>
+                <span class="text-xs text-purple-400 mt-1">15:30</span>
+                <div class="flex-1"></div>
+            </div>
+            <div class="flex-1 bg-white rounded-2xl shadow p-4 flex flex-col gap-0.5 self-center relative">
+                <!-- 完成状态按钮 -->
+                <button class="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full border-2 complete-btn" data-complete="false"></button>
+                <div class="flex items-center gap-2 mb-0.5">
+                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span class="text-xs text-purple-500 font-medium">15:30-17:00（1.5小时）</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">《Reading》</span>
+                </div>
+                <div class="font-semibold text-gray-900 text-lg">Read AI Book</div>
+                <div class="text-xs text-gray-500">阅读AI相关书籍，记录灵感。</div>
+            </div>
+        </div>
+        <!-- 事项4 -->
+        <!-- <div class="relative flex items-start gap-4">
+            <div class="flex flex-col items-center z-10 min-w-[40px]">
+                <div class="flex-1"></div>
+                <div class="w-6 h-6 rounded-full border-2 border-purple-400 mt-1 bg-white"></div>
+                <span class="text-xs text-purple-400 mt-1">18:00</span>
+                <div class="flex-1"></div>
+            </div>
+            <div class="flex-1 bg-white rounded-2xl shadow p-4 flex flex-col gap-0.5 self-center">
+                <div class="flex items-center gap-2 mb-0.5">
+                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span class="text-xs text-purple-500 font-medium">18:00 PM</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">《Dinner with team》</span>
+                    <svg class="w-5 h-5 text-purple-400 bg-purple-100 rounded-full p-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                <div class="font-semibold text-gray-900 text-lg">Team Dinner</div>
+            </div>
+        </div> -->
+    </div>
+    <!-- 想法内容 -->
+    <div id="calendar-idea-list" class="flex-1 overflow-y-auto px-4 pb-4 space-y-6 relative hidden">
+        <!-- 时间轴竖线 -->
+        <div class="absolute left-10 top-10 bottom-0 w-0.5 bg-gradient-to-b from-purple-200 to-purple-100 z-0"></div>
+        <!-- AI总结卡片 -->
+        <div class="relative flex items-start gap-4 mb-2">
+            <div class="flex flex-col items-center z-10 min-w-[48px]">
+                <div class="flex-1"></div>             
+                <div class="w-6 h-6 rounded-full border-2 border-purple-500 mt- flex items-center justify-center">
+                  <div class="w-5 h-5 rounded-full bg-white flex items-center justify-center">
+                    <svg class="w-4 h-4 text-purple-500" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6 19a4 4 0 0 1 0-8 5 5 0 0 1 9.9-1.3A4 4 0 1 1 18 19H6z" />
+                    </svg>
+                  </div>
+                </div>               
+              <div class="flex-1"></div>
+            </div>
+            <div class="flex-1 bg-gradient-to-br from-purple-50 to-white rounded-2xl shadow p-4 flex flex-col gap-2 self-center border border-purple-100">
+                <div class="text-sm text-gray-700 leading-relaxed">
+                    今天你记录了两个有趣的灵感，关于童年和思考方法，都很有深度。Keep thinking!
+                </div>
+            </div>
+        </div>
+        <!-- 想法1 -->
+        <div class="relative flex items-start gap-4">
+            <div class="flex flex-col items-center z-10 min-w-[48px]">
+                <div class="flex-1"></div>
+                <div class="w-6 h-6 rounded-full bg-purple-500 mt-1 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                      <path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12v1a1 1 0 001 1h6a1 1 0 001-1v-1a7 7 0 00-4-12z" />
+                    </svg>
+                  </div>
+                <span class="text-xs text-purple-400 mt-1">10:15</span>
+                <div class="flex-1"></div>
+            </div> 
+            <div class="flex-1 bg-white rounded-2xl shadow p-4 flex flex-col gap-1 self-center">
+                <div class="flex-1">
+                    <h3 class="font-semibold text-gray-900 text-lg">"人生是艰难的，所以童年应该是彩色的"</h3>
+                    <!-- <div class="flex gap-2 mt-2">
+                        <span class="px-2 py-0.5 bg-green-50 text-green-500 rounded-full text-xs font-semibold whitespace-nowrap">#冥想</span>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+        <!-- 想法2 -->
+        <div class="relative flex items-start gap-4">
+            <div class="flex flex-col items-center z-10 min-w-[48px]">
+                <div class="flex-1"></div>
+                <div class="w-6 h-6 rounded-full bg-purple-500 mt-1 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                      <path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12v1a1 1 0 001 1h6a1 1 0 001-1v-1a7 7 0 00-4-12z" />
+                    </svg>
+                  </div>
+                <span class="text-xs text-purple-400 mt-1">14:00</span>
+                <div class="flex-1"></div>
+            </div>
+            <div class="flex-1 bg-white rounded-2xl shadow p-4 flex flex-col gap-1 self-center">
+                <!-- <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">《思考》</span>
+                    <span class="px-2 py-0.5 bg-green-50 text-green-500 rounded-full text-xs font-semibold whitespace-nowrap">#冥想</span>
+                </div> -->
+                <div class="font-semibold text-gray-900 text-lg">"六顶帽子思考法"</div>
+                <!-- <div class="text-xs text-gray-500 mt-1">结合AI推荐，定制个性化健身计划。</div> -->
+            </div>
+        </div>
+    </div>
+    <!-- 记账内容 -->
+    <div id="calendar-bill-list" class="flex-1 overflow-y-auto px-4 pb-4 space-y-6 relative hidden">
+        <!-- 时间轴竖线 -->
+        <div class="absolute left-10 top-10 bottom-0 w-0.5 bg-gradient-to-b from-purple-200 to-purple-100 z-0"></div>
+        <!-- AI总结卡片 -->
+        <div class="relative flex items-start gap-4 mb-2">
+            <div class="flex flex-col items-center z-10 min-w-[48px]">
+                <div class="flex-1"></div>             
+                <div class="w-6 h-6 rounded-full border-2 border-purple-500 mt- flex items-center justify-center">
+                  <div class="w-5 h-5 rounded-full bg-white flex items-center justify-center">
+                    <svg class="w-4 h-4 text-purple-500" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6 19a4 4 0 0 1 0-8 5 5 0 0 1 9.9-1.3A4 4 0 1 1 18 19H6z" />
+                    </svg>
+                  </div>
+                </div>               
+              <div class="flex-1"></div>             
+            </div>
+            <div class="flex-1 bg-gradient-to-br from-purple-50 to-white rounded-2xl shadow p-4 flex flex-col gap-2 self-center border border-purple-100">
+                <div class="text-sm text-gray-700 leading-relaxed">
+                    今天你在健康方面的支出共78元，包括早餐和健身，些投资都很值得。Keep recording！
+                </div>
+            </div>
+        </div>
+        <!-- 记账1 -->
+        <div class="relative flex items-start gap-4">
+            <div class="flex flex-col items-center z-10 min-w-[48px]">
+                <div class="flex-1"></div>
+                <div class="w-6 h-6 rounded-full bg-purple-500 mt-1 flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" viewBox="0 0 1024 1024" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M522.24 104.448q2.048 0 5.12-2.048 6.144-4.096 16.384-14.336 12.288-11.264 24.576-16.384t32.768 3.072q10.24 3.072 16.384 8.704t11.776 10.752 12.288 8.704 16.896 3.584 17.408-3.072 13.824-5.632 13.312-3.584 15.872 2.048q10.24 4.096 13.824 11.776t2.048 15.872-7.168 16.384-13.824 13.312q-19.456 12.288-29.696 25.088t-20.48 27.136q-5.12 7.168-11.264 16.384t-11.264 18.432q-6.144 11.264-13.312 21.504l-211.968 0q-7.168-12.288-14.336-23.552-6.144-10.24-13.312-20.48t-12.288-18.432q-10.24-15.36-23.04-27.136t-25.088-20.992q-13.312-9.216-18.432-25.088t9.216-27.136q7.168-5.12 16.384-4.096t19.456 4.096 19.968 6.144 17.92 1.024q14.336-3.072 21.504-10.752t24.576-18.944q13.312-8.192 29.696-5.632t24.576 10.752q4.096 5.12 8.704 8.704t9.728 6.656q5.12 4.096 11.264 7.168zM637.952 309.248q12.288 16.384 30.72 35.84 15.36 17.408 37.888 39.424t52.224 46.592q24.576 21.504 50.688 50.688t45.568 68.096 27.136 89.6-2.56 113.152q-9.216 51.2-36.352 96.768t-72.192 79.36-107.008 53.76-140.8 19.968q-80.896 0-143.36-23.04t-105.984-59.904-69.12-82.432-33.792-90.624q-9.216-50.176-2.56-96.256t24.064-86.528 43.52-74.24 56.832-60.416q26.624-23.552 48.128-44.544t35.84-38.4q17.408-19.456 30.72-36.864l230.4 0zM529.408 623.616l-27.648-27.648-21.504-21.504q-10.24-10.24-14.336-15.36-8.192-7.168-21.504-11.776t-22.528 5.632q-8.192 11.264-4.096 22.016t9.216 16.896l15.36 14.336q11.264 12.288 24.576 26.624 15.36 16.384 33.792 34.816l-1.024 21.504-69.632 0q-9.216 0-15.872 7.168t-6.656 15.36 6.144 14.336 16.384 6.144l69.632 0 0 35.84-69.632 0q-9.216 0-15.872 5.632t-6.656 14.848q-1.024 8.192 5.632 13.824t16.896 5.632l69.632 0 0 20.48q1.024 14.336 9.216 19.968t20.48 5.632q12.288 1.024 19.968-7.68t7.68-17.92l0-20.48 71.68 0q10.24 0 16.896-4.608t5.632-14.848q0-21.504-28.672-21.504l-65.536 0 1.024-34.816 66.56-1.024q14.336 1.024 20.48-5.632t6.144-15.872q0-8.192-6.656-14.848t-20.992-6.656l-66.56 0 0-19.456q17.408-16.384 31.744-31.744 12.288-12.288 24.576-25.088t18.432-17.92q23.552-20.48 10.24-35.84-7.168-9.216-18.432-9.216t-20.48 8.192q-5.12 4.096-17.408 14.848t-24.576 22.016q-14.336 13.312-31.744 29.696z" />
+                </svg>
+                </div>
+                <span class="text-xs text-purple-400 mt-1">10:15</span>
+                <div class="flex-1"></div>
+            </div>
+
+            <div class="flex-1 bg-white rounded-2xl shadow p-4 flex flex-col gap-1 self-center relative">
+                <div class="flex items-center justify-between">
+                    <div class="font-semibold text-gray-900 text-lg"> -¥ 18.00 早餐</div>
+                    <span class="text-xs text-[#57be6b]">微信</span>
+                </div>
+            </div>
+        </div>
+        <!-- 记账2 -->
+        <div class="relative flex items-start gap-4">
+            <div class="flex flex-col items-center z-10 min-w-[48px]">
+                <div class="flex-1"></div>
+                <div class="w-6 h-6 rounded-full bg-purple-500 mt-1 flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" viewBox="0 0 1024 1024" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M522.24 104.448q2.048 0 5.12-2.048 6.144-4.096 16.384-14.336 12.288-11.264 24.576-16.384t32.768 3.072q10.24 3.072 16.384 8.704t11.776 10.752 12.288 8.704 16.896 3.584 17.408-3.072 13.824-5.632 13.312-3.584 15.872 2.048q10.24 4.096 13.824 11.776t2.048 15.872-7.168 16.384-13.824 13.312q-19.456 12.288-29.696 25.088t-20.48 27.136q-5.12 7.168-11.264 16.384t-11.264 18.432q-6.144 11.264-13.312 21.504l-211.968 0q-7.168-12.288-14.336-23.552-6.144-10.24-13.312-20.48t-12.288-18.432q-10.24-15.36-23.04-27.136t-25.088-20.992q-13.312-9.216-18.432-25.088t9.216-27.136q7.168-5.12 16.384-4.096t19.456 4.096 19.968 6.144 17.92 1.024q14.336-3.072 21.504-10.752t24.576-18.944q13.312-8.192 29.696-5.632t24.576 10.752q4.096 5.12 8.704 8.704t9.728 6.656q5.12 4.096 11.264 7.168zM637.952 309.248q12.288 16.384 30.72 35.84 15.36 17.408 37.888 39.424t52.224 46.592q24.576 21.504 50.688 50.688t45.568 68.096 27.136 89.6-2.56 113.152q-9.216 51.2-36.352 96.768t-72.192 79.36-107.008 53.76-140.8 19.968q-80.896 0-143.36-23.04t-105.984-59.904-69.12-82.432-33.792-90.624q-9.216-50.176-2.56-96.256t24.064-86.528 43.52-74.24 56.832-60.416q26.624-23.552 48.128-44.544t35.84-38.4q17.408-19.456 30.72-36.864l230.4 0zM529.408 623.616l-27.648-27.648-21.504-21.504q-10.24-10.24-14.336-15.36-8.192-7.168-21.504-11.776t-22.528 5.632q-8.192 11.264-4.096 22.016t9.216 16.896l15.36 14.336q11.264 12.288 24.576 26.624 15.36 16.384 33.792 34.816l-1.024 21.504-69.632 0q-9.216 0-15.872 7.168t-6.656 15.36 6.144 14.336 16.384 6.144l69.632 0 0 35.84-69.632 0q-9.216 0-15.872 5.632t-6.656 14.848q-1.024 8.192 5.632 13.824t16.896 5.632l69.632 0 0 20.48q1.024 14.336 9.216 19.968t20.48 5.632q12.288 1.024 19.968-7.68t7.68-17.92l0-20.48 71.68 0q10.24 0 16.896-4.608t5.632-14.848q0-21.504-28.672-21.504l-65.536 0 1.024-34.816 66.56-1.024q14.336 1.024 20.48-5.632t6.144-15.872q0-8.192-6.656-14.848t-20.992-6.656l-66.56 0 0-19.456q17.408-16.384 31.744-31.744 12.288-12.288 24.576-25.088t18.432-17.92q23.552-20.48 10.24-35.84-7.168-9.216-18.432-9.216t-20.48 8.192q-5.12 4.096-17.408 14.848t-24.576 22.016q-14.336 13.312-31.744 29.696z" />
+                </svg>
+                </div>
+                <span class="text-xs text-purple-400 mt-1">19:15</span>
+                <div class="flex-1"></div>
+            </div>
+            <div class="flex-1 bg-white rounded-2xl shadow p-4 flex flex-col gap-1 self-center relative">
+                <!-- <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">《健身房》</span>
+                    <span class="px-2 py-0.5 bg-green-50 text-green-500 rounded-full text-xs font-semibold whitespace-nowrap">#健康</span>
+                </div> -->
+                <div class="flex items-center justify-between">
+                    <div class="font-semibold text-gray-900 text-lg">-¥ 60.00 普拉提</div>
+                    <span class="text-xs text-[#1677FF]">支付宝</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 事项详情弹窗 -->
+    <div id="task-detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
+        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl flex flex-col transition-transform duration-300 ease-out" id="modal-content" style="transition: transform 0.3s cubic-bezier(0.4, 1.2, 0.4, 1);transform: translateY(0px);height: 760px;">
+            <!-- 下拉条 -->
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-2 cursor-grab active:cursor-grabbing" id="drag-handle"></div>
+            <!-- 事项详情内容 -->
+            <div class="flex-1 overflow-y-auto px-6 pb-6">
+                <!-- 可编辑区域 -->
+                <div class="bg-gray-50 rounded-2xl p-4 mb-2 cursor-pointer  transition" onclick="this.classList.toggle('editing')">
+                    <!-- 可编辑标题 -->
+                    <input type="text" value="Market Research" class="text-xl font-bold text-gray-900 mb-2 bg-transparent border-0 focus:ring-2 focus:ring-purple-200 px-0 w-full" style="outline:none;"/>
+                    <div class="flex items-center gap-1 mb-2">
+                        <svg class="w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span class="text-sm text-purple-400 font-medium">2024-05-25 09:30-12:30（每天循环）</span>
+                    </div>
+                    <!-- 可编辑项目名 -->
+                    <textarea class="text-sm text-gray-600 mb-2 leading-relaxed w-full bg-gray-50 rounded-xl p-3 border-0 focus:ring-2 focus:ring-purple-200 resize-none" rows="1" style="padding: 0.2rem;outline:none;">《Uber Eats redesign challenge》</textarea>
+                    <!-- 可编辑备注 -->
+                    <textarea class="text-sm text-gray-600 mb-2 leading-relaxed w-full bg-gray-50 rounded-xl p-3 border-0 focus:ring-2 focus:ring-purple-200 resize-none" rows="2" style="padding: 0.2rem;outline:none;">AI调研市场趋势，收集竞品信息。需要重点关注用户需求、产品定位。</textarea>
+                    <!-- 图片预览 -->
+                    <div class="flex gap-1 mb-2">
+                        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=80&h=80&q=80" class="w-16 h-16 rounded-xl object-cover border"/>
+                    </div>
+                    <!-- 地理位置预览 -->
+                    <div class="flex items-center gap-1 mb-2">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M21 10c0 6-9 13-9 13S3 16 3 10a9 9 0 1 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span class="text-sm text-blue-600">上海市静安区南京西路699号</span>
+                    </div>
+                </div>
+
+                <!-- 分隔线 -->
+                <div class="flex items-center gap-1 mb-2">
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                    <span class="text-xs text-gray-400">AI对话</span>
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                </div>
+
+                <!-- AI对话 -->
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2v4"></path>
+                                <path d="M12 18v4"></path>
+                                <path d="m4.93 4.93 2.83 2.83"></path>
+                                <path d="m16.24 16.24 2.83 2.83"></path>
+                                <path d="M2 12h4"></path>
+                                <path d="M18 12h4"></path>
+                                <path d="m4.93 19.07 2.83-2.83"></path>
+                                <path d="m16.24 7.76 2.83-2.83"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1 bg-purple-50 rounded-2xl p-3">
+                            <p class="text-sm text-gray-700 leading-relaxed">我可以帮你优化这个市场调研任务，比如新增标签、规划时间等。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI对话输入框（页面底部，仿微信/小红书样式） -->
+    <div id="ai-bar" class="fixed left-0 w-full flex items-center bg-white rounded-2xl shadow-lg px-4 py-2 z-80 transition-all duration-300" style="z-index: 11;max-width:390px;margin:0 auto;box-shadow:0 4px 48px 0 rgba(200,200,200,0.50);border-radius:24px 24px 0 0;bottom:8px;">
+        <!-- 相机icon -->
+        <button class="flex items-center justify-center mr-3">
+            <svg class="w-7 h-7 text-black" fill="none" stroke="rgb(136, 58, 226)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <rect x="3" y="7" width="18" height="13" rx="3"/>
+                <circle cx="12" cy="13.5" r="3.5"/>
+                <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+        </button>
+        <!-- 输入框 -->
+        <input id="ai-input" type="text" placeholder="给AI发指令(输入或按住说话)" class="flex-1 bg-white border-0 focus:ring-0 text-base text-gray-700 placeholder-gray-400 py-2 outline-none"/>
+        <!-- 语音icon（标准麦克风样式） -->
+        <button id="voice-btn" class="flex items-center justify-center ml-3">
+            <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M8 5a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0V5z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <path d="M12 19v4" />
+                <path d="M8 23h8" />
+            </svg>
+        </button>
+        <!-- 加号icon -->
+        <button id="plus-btn" class="flex items-center justify-center ml-3">
+            <svg id="plus-icon" class="w-7 h-7 text-black" fill="none" stroke="rgb(136, 58, 226)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            <svg id="close-icon" class="w-7 h-7 text-black hidden" fill="none" stroke="rgb(136, 58, 226)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="8" y1="8" x2="16" y2="16"/>
+                <line x1="16" y1="8" x2="8" y2="16"/>
+            </svg>
+        </button>
+    </div>
+
+    
+    <!-- 模拟键盘弹窗 -->
+    <div id="keyboard-panel" class="fixed left-0 right-0 bottom-0 z-[70] bg-gray-200 rounded-t-1xl shadow-lg px-4 py-4 text-center text-gray-500 text-lg hidden" style="max-width:390px;margin:0 auto;height:266px;">[模拟键盘区域]</div>
+    <!-- 加号功能面板 -->
+    <div id="plus-panel" class="fixed left-0 right-0 bottom-0 z-[70] bg-white rounded-t-2xl shadow-lg px-2 pt-4 pb-2 hidden" style="max-width:360px;margin:0 auto;height:266px;">
+        <div class="flex justify-between items-center px-2 mb-2 gap-2" >
+            <div class="flex flex-col items-center flex-1 cursor-pointer" id="plus-camera">
+                <div class="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center mb-1" style="width: 73px;">
+                    <svg class="w-8 h-8 text-black" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="3"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </div>
+                <!-- <span class="text-xs text-gray-700">相机</span> -->
+            </div>
+            <div class="flex flex-col items-center flex-1 cursor-pointer" id="plus-album">
+                <div class="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center mb-1" style="width: 73px;">
+                    <svg class="w-8 h-8 text-black" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <!-- <span class="text-xs text-gray-700">相册</span> -->
+            </div>
+            <div class="flex flex-col items-center flex-1">
+                <div class="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center mb-1" style="width:73px;">
+                    <span class="text-base text-gray-500">照片</span>
+                </div>
+            </div>
+            <div class="flex flex-col items-center flex-1">
+                <div class="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center mb-1" style="width:73px;">
+                    <span class="text-base text-gray-500">照片</span>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-2 justify-start px-2" id="plus-album-list">
+            <div class="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center" style="width: 73px;" >
+                <span class="text-base text-gray-500">照片</span>
+            </div>
+            <div class="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center" style="width: 73px;">
+                <span class="text-base text-gray-500">照片</span>
+            </div>
+            <div class="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center" style="width: 73px;">
+                <span class="text-base text-gray-500">照片</span>
+            </div>
+            <div class="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center" style="width: 73px;">
+                <span class="text-base text-gray-500">照片</span>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+    
+
+    <!-- AI对话弹窗（AI浮层按钮点击后展示） -->
+    <div id="ai-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden">
+      <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl flex flex-col transition-transform duration-300 ease-out shadow-2xl" id="ai-modal-content" style="transition: transform 0.3s cubic-bezier(0.4, 1.2, 0.4, 1);transform: translateY(0px);height: 520px;max-width:390px;margin:0 auto;">
+        <!-- 下拉条 -->
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-2 cursor-grab active:cursor-grabbing" id="ai-drag-handle"></div>
+        <!-- AI欢迎内容 -->
+        <div class="flex-1 overflow-y-auto px-6 pb-2 pt-2 flex flex-col gap-4">
+          <div class="text-2xl font-bold text-purple-700 mb-1">cc下午好！</div>
+          <div class="text-base text-gray-700 mb-2">今天我能为你做些什么？</div>
+          <div class="flex flex-col gap-4">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-purple-100 rounded-full mt-0.5">
+                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 2v4M16 2v4"/></svg>
+              </div>
+              <div class="flex-1">
+                <div class="font-semibold text-gray-900">日程管理</div>
+                <div class="text-sm text-gray-500 leading-relaxed">扫描课程表为每堂课创建每周重复的事件。<br>将昨天未完成的任务重新安排到今天。</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-green-100 rounded-full mt-0.5">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg>
+              </div>
+              <div class="flex-1">
+                <div class="font-semibold text-gray-900">创建计划</div>
+                <div class="text-sm text-gray-500 leading-relaxed">创建本周每天的法语词汇学习任务。<br>规划两天成都市区之旅，包含细节。</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-yellow-100 rounded-full mt-0.5">
+                <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 17a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4V7a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4Z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></svg>
+              </div>
+              <div class="flex-1">
+                <div class="font-semibold text-gray-900">信息总结</div>
+                <div class="text-sm text-gray-500 leading-relaxed">总结过去一个月我的日程、想法、消费情况。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+           <!-- AI对话输入框（页面底部，仿微信/小红书样式） -->
+           <div id="ai-bar-modal" class="fixed left-0 w-full flex items-center bg-white rounded-2xl shadow-lg px-4 py-2 z-80 transition-all duration-300" style="z-index: 11;max-width:390px;margin:0 auto;box-shadow:0 4px 48px 0 rgba(200,200,200,0.50);border-radius:24px 24px 0 0;bottom:8px;">
+            <!-- 相机icon -->
+            <button class="flex items-center justify-center mr-3">
+                <svg class="w-7 h-7 text-black" fill="none" stroke="rgb(136, 58, 226)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <rect x="3" y="7" width="18" height="13" rx="3"/>
+                    <circle cx="12" cy="13.5" r="3.5"/>
+                    <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+            </button>
+            <!-- 输入框 -->
+            <input id="ai-input" type="text" placeholder="给AI发指令(输入或按住说话)" class="flex-1 bg-white border-0 focus:ring-0 text-base text-gray-700 placeholder-gray-400 py-2 outline-none"/>
+            <!-- 语音icon（标准麦克风样式） -->
+            <button id="voice-btn" class="flex items-center justify-center ml-3">
+                <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M8 5a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0V5z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <path d="M12 19v4" />
+                    <path d="M8 23h8" />
+                </svg>
+            </button>
+            <!-- 加号icon -->
+            <button id="plus-btn" class="flex items-center justify-center ml-3">
+                <svg id="plus-icon" class="w-7 h-7 text-black" fill="none" stroke="rgb(136, 58, 226)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="16"/>
+                    <line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+                <svg id="close-icon" class="w-7 h-7 text-black hidden" fill="none" stroke="rgb(136, 58, 226)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="8" y1="8" x2="16" y2="16"/>
+                    <line x1="16" y1="8" x2="8" y2="16"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    
+    <script>
+   
+    // Tab切换逻辑
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const underline = document.querySelector('.tab-underline');
+    const taskList = document.getElementById('calendar-task-list');
+    const ideaList = document.getElementById('calendar-idea-list');
+    const billList = document.getElementById('calendar-bill-list');
+    const monthCalendar = document.getElementById('month-calendar');
+    let monthTabIdx = 0; // 0:待办 1:灵感 2:记账
+    let isMonthExpanded = false;
+
+    // 月视图内容数据（可根据实际数据替换）
+    const monthData = [
+      // 待办
+      {
+        5: [{text:'复盘', color:'bg-yellow-100 text-yellow-700'},{text:'figma', color:'bg-yellow-100 text-yellow-700'}],
+        15: [{text:'装修', color:'bg-blue-100 text-blue-700'}],
+        16: [{text:'struc', color:'bg-red-100 text-red-700'}],
+        20: [{text:'演唱', color:'bg-purple-200 text-purple-800'}, {text:'小满', color:'bg-yellow-100 text-yellow-700'}],
+        25: [{text:'tb退', color:'bg-blue-100 text-blue-700'}],
+        31: [{text:'APP', color:'bg-yellow-100 text-yellow-700'}],
+        21: [{text:'原型', color:'bg-yellow-100 text-yellow-700'}],
+      },
+      // 灵感
+      {
+        3: [{text:'童年', color:'bg-green-100 text-green-700'}],
+        8: [{text:'六顶帽子', color:'bg-blue-100 text-blue-700'}],
+        14: [{text:'AI灵感', color:'bg-purple-100 text-purple-700'}],
+        20: [{text:'思考', color:'bg-yellow-100 text-yellow-700'}],
+      },
+      // 记账
+      {
+        2: [{text:'早餐-18', color:'bg-blue-100 text-blue-700'}],
+        10: [{text:'普拉提-60', color:'bg-yellow-100 text-yellow-700'}],
+        15: [{text:'咖啡-8', color:'bg-green-100 text-green-700'}],
+        20: [{text:'收入+1000', color:'bg-purple-100 text-purple-700'}],
+      }
+    ];
+
+    function generateCalendarDays(tabIdx) {
+      const grid = document.getElementById('calendar-grid');
+      grid.innerHTML = '';
+      const year = 2025;
+      const month = 4;
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      const startWeek = firstDay.getDay();
+      const prevMonthLastDay = new Date(year, month, 0).getDate();
+      const dayEvents = monthData[tabIdx];
+      for(let i=startWeek-1;i>=0;i--){
+        const cell = document.createElement('div');
+        cell.className = 'flex flex-col items-center min-h-[56px] py-1 text-gray-300';
+        cell.textContent = prevMonthLastDay - i;
+        grid.appendChild(cell);
+      }
+      for(let i=1;i<=daysInMonth;i++){
+        const cell = document.createElement('div');
+        cell.className = 'flex flex-col items-center min-h-[56px] py-1 relative';
+        if(i===20){
+          const dot = document.createElement('div');
+          dot.className = 'absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-purple-600 rounded-full';
+          cell.appendChild(dot);
+        }
+        const dayNum = document.createElement('div');
+        dayNum.className = 'text-base font-semibold';
+        dayNum.textContent = i;
+        cell.appendChild(dayNum);
+        if(dayEvents && dayEvents[i]){
+          const wrap = document.createElement('div');
+          wrap.className = 'flex flex-wrap gap-1 mt-1 justify-center';
+          dayEvents[i].forEach(ev=>{
+            const tag = document.createElement('span');
+            tag.className = `px-2 py-0.5 rounded-full text-xs font-semibold ${ev.color}`;
+            tag.textContent = ev.text;
+            wrap.appendChild(tag);
+          });
+          cell.appendChild(wrap);
+        }
+        grid.appendChild(cell);
+      }
+      const totalCells = startWeek + daysInMonth;
+      const nextDays = (7 - (totalCells % 7)) % 7;
+      for(let i=1;i<=nextDays;i++){
+        const cell = document.createElement('div');
+        cell.className = 'flex flex-col items-center min-h-[56px] py-1 text-gray-300';
+        cell.textContent = i;
+        grid.appendChild(cell);
+      }
+    }
+
+    function setTab(idx) {
+      tabBtns.forEach((btn, i) => {
+        if(i === idx) {
+          btn.classList.add('font-bold', 'text-purple-600');
+          btn.classList.remove('font-semibold', 'text-gray-400');
+        } else {
+          btn.classList.remove('font-bold', 'text-purple-600');
+          btn.classList.add('font-semibold', 'text-gray-400');
+        }
+      });
+      underline.style.left = `${idx * 33.3333}%`;
+      taskList.classList.toggle('hidden', idx !== 0);
+      ideaList.classList.toggle('hidden', idx !== 1);
+      billList.classList.toggle('hidden', idx !== 2);
+      monthTabIdx = idx;
+      // 如果月视图已展开，切换tab时只切换内容，不收起
+      if (!monthCalendar.classList.contains('hidden')) {
+        generateCalendarDays(idx);
+      }
+    }
+    tabBtns.forEach((btn, idx) => {
+      btn.addEventListener('click', () => setTab(idx));
+    });
+    setTab(0);
+
+    // 日历下拉展开交互
+    (function() {
+      const dragHandle = document.getElementById('calendar-drag-handle');
+      const closeBar = document.getElementById('month-calendar-close-bar');
+      let startY = 0;
+      let currentY = 0;
+      let dragThreshold = 40;
+      function toggleCalendar(expand) {
+        isMonthExpanded = expand;
+        monthCalendar.classList.toggle('hidden', !expand);
+        if (expand) generateCalendarDays(monthTabIdx);
+      }
+      dragHandle.addEventListener('click', () => {
+        const isNowHidden = monthCalendar.classList.contains('hidden');
+        toggleCalendar(isNowHidden);
+      });
+      dragHandle.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+        currentY = startY;
+      });
+      dragHandle.addEventListener('touchmove', (e) => {
+        currentY = e.touches[0].clientY;
+      });
+      dragHandle.addEventListener('touchend', () => {
+        const deltaY = currentY - startY;
+        if (!isMonthExpanded && deltaY > dragThreshold) {
+          toggleCalendar(true);
+        }
+      });
+      closeBar.addEventListener('click', () => {
+        toggleCalendar(false);
+      });
+
+    })();
+
+    // 事项详情弹窗交互
+    document.addEventListener('DOMContentLoaded', function() {
+        let startY = 0;
+        let currentY = 0;
+        let isExpanded = false;
+        const modal = document.getElementById('task-detail-modal');
+        const modalContent = document.getElementById('modal-content');
+        const dragHandle = document.getElementById('drag-handle');
+        const expandedContent = document.getElementById('expanded-content');
+
+        // 初始状态隐藏展开内容
+        if (expandedContent) expandedContent.style.display = 'none';
+
+        function showTaskDetail() {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            modalContent.style.transition = 'transform 0.3s cubic-bezier(.4,1.2,.4,1)';
+            modalContent.style.transform = 'translateY(0)';
+            isExpanded = false;
+            if (expandedContent) expandedContent.style.display = 'none';
+        }
+
+        function closeTaskDetail() {
+            modalContent.style.transition = 'transform 0.3s cubic-bezier(.4,1.2,.4,1)';
+            modalContent.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }, 300);
+        }
+
+        function toggleExpanded(expand) {
+            isExpanded = (expand !== undefined) ? expand : !isExpanded;
+            if (expandedContent) expandedContent.style.display = isExpanded ? 'block' : 'none';
+            modalContent.style.transition = 'transform 0.3s cubic-bezier(.4,1.2,.4,1)';
+            modalContent.style.transform = isExpanded ? 'translateY(-30%)' : 'translateY(0)';
+        }
+
+        // 触摸事件处理
+        dragHandle.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            currentY = startY;
+            modalContent.style.transition = '';
+        });
+
+        dragHandle.addEventListener('touchmove', (e) => {
+            currentY = e.touches[0].clientY;
+            const deltaY = currentY - startY;
+            if (deltaY > 0 && !isExpanded) { // 下拉收起/关闭
+                modalContent.style.transform = `translateY(${deltaY}px)`;
+            } else if (deltaY < 0 && !isExpanded) { // 上拉展开
+                const translateY = Math.max(deltaY, -window.innerHeight * 0.3);
+                modalContent.style.transform = `translateY(${translateY}px)`;
+            } else if (isExpanded && deltaY > 0) { // 展开状态下下拉收起
+                const translateY = Math.min(-window.innerHeight * 0.3 + deltaY, 0);
+                modalContent.style.transform = `translateY(${translateY}px)`;
+            }
+        });
+
+        dragHandle.addEventListener('touchend', () => {
+            const deltaY = currentY - startY;
+            modalContent.style.transition = 'transform 0.3s cubic-bezier(.4,1.2,.4,1)';
+            if (!isExpanded && deltaY > 100) { // 下拉关闭
+                closeTaskDetail();
+            } else if (!isExpanded && deltaY < -50) { // 上拉展开
+                toggleExpanded(true);
+            } else if (isExpanded && deltaY > 50) { // 展开状态下下拉收起
+                toggleExpanded(false);
+            } else {
+                modalContent.style.transform = isExpanded ? 'translateY(-30%)' : 'translateY(0)';
+            }
+        });
+
+        // 遮罩点击关闭弹窗
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeTaskDetail();
+            }
+        });
+
+        // 为所有事项卡片添加点击事件
+        document.querySelectorAll('#calendar-task-list > div').forEach(card => {
+            card.addEventListener('click', showTaskDetail);
+        });
+    });
+
+    
+    // AI输入框交互：键盘和加号面板（点击空白收起功能区，无遮罩）
+    (function() {
+        const input = document.getElementById('ai-input');
+        const inputOutside = document.getElementById('ai-input-outside');
+        const aiBar = document.getElementById('ai-bar');
+        const aiBarOutside = document.getElementById('ai-bar-outside');
+        const keyboardPanel = document.getElementById('keyboard-panel');
+        const keyboardPanelOutside = document.getElementById('keyboard-panel-outside');
+        const plusBtn = document.getElementById('plus-btn');
+        const plusBtnOutside = document.getElementById('plus-btn-outside');
+        const plusPanel = document.getElementById('plus-panel');
+        const plusPanelOutside = document.getElementById('plus-panel-outside');
+        const plusIcon = document.getElementById('plus-icon');
+        const plusIconOutside = document.getElementById('plus-icon-outside');
+        const closeIcon = document.getElementById('close-icon');
+        const closeIconOutside = document.getElementById('close-icon-outside');
+        const albumList = document.getElementById('plus-album-list');
+        const albumListOutside = document.getElementById('plus-album-list-outside');
+        
+        let plusOpen = false;
+        let plusOpenOutside = false;
+        let keyboardOpen = false;
+        let keyboardOpenOutside = false;
+
+        // 输入框聚焦时弹出模拟键盘，AI输入框上移，无遮罩
+        input.addEventListener('focus', () => {
+            keyboardPanel.classList.remove('hidden');
+            plusPanel.classList.add('hidden');
+            plusIcon.classList.remove('hidden');
+            closeIcon.classList.add('hidden');
+            plusOpen = false;
+            keyboardOpen = true;
+            aiBar.style.bottom = '260px';
+        });
+
+
+        // 输入框失焦时收起键盘
+        input.addEventListener('blur', () => {
+            setTimeout(() => {
+                keyboardPanel.classList.add('hidden');
+                aiBar.style.bottom = '8px';
+                keyboardOpen = false;
+            }, 100);
+        });
+
+
+
+        // 点击加号/叉号切换面板，AI输入框上移，始终可见，无遮罩
+        plusBtn.addEventListener('click', () => {
+            plusOpen = !plusOpen;
+            if (plusOpen) {
+                plusPanel.classList.remove('hidden');
+                keyboardPanel.classList.add('hidden');
+                plusIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+                aiBar.style.bottom = '260px';
+                input.blur();
+                // 监听点击空白收起面板
+                setTimeout(() => {
+                    document.addEventListener('mousedown', handleClickOutside, true);
+                    document.addEventListener('touchstart', handleClickOutside, true);
+                }, 10);
+            } else {
+                plusPanel.classList.add('hidden');
+                plusIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+                aiBar.style.bottom = '8px';
+                document.removeEventListener('mousedown', handleClickOutside, true);
+                document.removeEventListener('touchstart', handleClickOutside, true);
+            }
+        });
+
+
+
+        // 点击空白收起功能区
+        function handleClickOutside(e) {
+            if (plusOpen && plusPanel && !plusPanel.contains(e.target) && !plusBtn.contains(e.target)) {
+                plusPanel.classList.add('hidden');
+                plusIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+                aiBar.style.bottom = '8px';
+                plusOpen = false;
+                document.removeEventListener('mousedown', handleClickOutside, true);
+                document.removeEventListener('touchstart', handleClickOutside, true);
+            }
+
+        }
+
+        // 相机、相册点击事件（可扩展）
+        document.getElementById('plus-camera').onclick = function() {
+            alert('打开相机功能（待实现）');
+        };
+        document.getElementById('plus-album').onclick = function() {
+            alert('打开相册功能（待实现）');
+        };
+
+    })();
+    // 月视图事项和行距、点击外部收起
+    (function() {
+        // 事项数据示例（可替换为实际数据）
+        const dayEvents = {
+            5: [{text:'复盘', color:'bg-yellow-100 text-yellow-700'},{text:'figma', color:'bg-yellow-100 text-yellow-700'}],
+            15: [{text:'装修', color:'bg-blue-100 text-blue-700'}],
+            16: [{text:'struc', color:'bg-red-100 text-red-700'}],
+            20: [{text:'演唱', color:'bg-purple-200 text-purple-800'}, {text:'小满', color:'bg-yellow-100 text-yellow-700'}],
+            25: [{text:'tb退', color:'bg-blue-100 text-blue-700'}],
+            31: [{text:'APP', color:'bg-yellow-100 text-yellow-700'}],
+            21: [{text:'原型', color:'bg-yellow-100 text-yellow-700'}],
+        };
+        // 生成2025年5月的日历网格（带事项和20号小圆点）
+        function generateCalendarDays() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            const year = 2025;
+            const month = 4; // 0为1月，4为5月
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startWeek = firstDay.getDay(); // 0=周日
+            // 上月补齐
+            const prevMonthLastDay = new Date(year, month, 0).getDate();
+            for(let i=startWeek-1;i>=0;i--){
+                const cell = document.createElement('div');
+                cell.className = 'flex flex-col items-center min-h-[56px] py-1 text-gray-300';
+                cell.textContent = prevMonthLastDay - i;
+                grid.appendChild(cell);
+            }
+            // 本月日期
+            for(let i=1;i<=daysInMonth;i++){
+                const cell = document.createElement('div');
+                cell.className = 'flex flex-col items-center min-h-[56px] py-1 relative';
+                // 20号小圆点
+                if(i===20){
+                    const dot = document.createElement('div');
+                    dot.className = 'absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-purple-600 rounded-full';
+                    cell.appendChild(dot);
+                }
+                // 日期数字
+                const dayNum = document.createElement('div');
+                dayNum.className = 'text-base font-semibold';
+                dayNum.textContent = i;
+                cell.appendChild(dayNum);
+                // 事项标签
+                if(dayEvents[i]){
+                    const wrap = document.createElement('div');
+                    wrap.className = 'flex flex-wrap gap-1 mt-1 justify-center';
+                    dayEvents[i].forEach(ev=>{
+                        const tag = document.createElement('span');
+                        tag.className = `px-2 py-0.5 rounded-full text-xs font-semibold ${ev.color}`;
+                        tag.textContent = ev.text;
+                        wrap.appendChild(tag);
+                    });
+                    cell.appendChild(wrap);
+                }
+                grid.appendChild(cell);
+            }
+            // 下月补齐
+            const totalCells = startWeek + daysInMonth;
+            const nextDays = (7 - (totalCells % 7)) % 7;
+            for(let i=1;i<=nextDays;i++){
+                const cell = document.createElement('div');
+                cell.className = 'flex flex-col items-center min-h-[56px] py-1 text-gray-300';
+                cell.textContent = i;
+                grid.appendChild(cell);
+            }
+        }
+        generateCalendarDays();
+        // 点击外部收起月历
+        document.addEventListener('mousedown', function(e){
+            const cal = document.getElementById('month-calendar');
+            if(!cal.classList.contains('hidden') && !cal.contains(e.target)){
+                cal.classList.add('hidden');
+            }
+        });
+    })();
+    
+    // AI悬浮按钮弹窗交互
+    document.addEventListener('DOMContentLoaded', function() {
+      const aiFab = document.getElementById('ai-fab');
+      const aiModal = document.getElementById('ai-modal');
+      const aiModalContent = document.getElementById('ai-modal-content');
+      const aiDragHandle = document.getElementById('ai-drag-handle');
+      const aiInput = document.getElementById('ai-modal-input');
+      let startY = 0;
+      let currentY = 0;
+      let isExpanded = false;
+      // 打开弹窗
+      aiFab.addEventListener('click', function(e) {
+        aiModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        aiModalContent.style.transform = 'translateY(0)';
+        setTimeout(()=>{ aiInput && aiInput.focus(); }, 200);
+      });
+      // 遮罩点击关闭
+      aiModal.addEventListener('click', function(e) {
+        if (e.target === aiModal) {
+          closeAiModal();
+        }
+      });
+      // 下拉关闭
+      aiDragHandle.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+        currentY = startY;
+        aiModalContent.style.transition = '';
+      });
+      aiDragHandle.addEventListener('touchmove', (e) => {
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+        if (deltaY > 0) {
+          aiModalContent.style.transform = `translateY(${deltaY}px)`;
+        }
+      });
+      aiDragHandle.addEventListener('touchend', () => {
+        const deltaY = currentY - startY;
+        aiModalContent.style.transition = 'transform 0.3s cubic-bezier(.4,1.2,.4,1)';
+        if (deltaY > 100) {
+          closeAiModal();
+        } else {
+          aiModalContent.style.transform = 'translateY(0)';
+        }
+      });
+      function closeAiModal() {
+        aiModalContent.style.transition = 'transform 0.3s cubic-bezier(.4,1.2,.4,1)';
+        aiModalContent.style.transform = 'translateY(100%)';
+        setTimeout(() => {
+          aiModal.classList.add('hidden');
+          document.body.style.overflow = '';
+        }, 300);
+      }
+    });
+    </script>
+
+    <!-- 底部导航栏 -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2 flex justify-between items-center" style="max-width:390px;margin:0 auto;">
+        <button class="flex flex-col items-center gap-1">
+            <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <span class="text-xs text-gray-500">清单</span>
+        </button>
+        <button class="flex flex-col items-center gap-1">
+            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <span class="text-xs text-purple-600">日历</span>
+        </button>
+        <button class="flex flex-col items-center gap-1">
+            <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+            </svg>
+            <span class="text-xs text-gray-500">成就</span>
+        </button>
+        <button class="flex flex-col items-center gap-1">
+            <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <span class="text-xs text-gray-500">社区</span>
+        </button>
+    </div>
+
+    <!-- AI悬浮按钮 -->
+    <button class="fixed right-6 bottom-20 w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center group" style="max-width:390px;margin:0 auto; border:2px solid #eee;" id="ai-fab">
+        <svg class="w-10 h-10" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- 左眼 -->
+          <ellipse id="eye-blink-left" cx="16" cy="18" rx="2.2" ry="2.2" fill="#111" class="eye"/>
+          <!-- 右眼 -->
+          <ellipse id="eye-blink-right" cx="32" cy="18" rx="2.2" ry="2.2" fill="#111" class="eye"/>
+          <!-- 鼻子和眉毛 -->
+          <path d="M24 14 Q22 24 28 32" stroke="#111" stroke-width="2" fill="none"/>
+          <!-- 嘴巴 -->
+          <path d="M18 34 L28 34" stroke="#111" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      
+        <style>
+          @keyframes blink {
+            0%, 92%, 100% { ry: 2.2; }
+            93%, 97% { ry: 0.3; }
+          }
+          #eye-blink-left,
+          #eye-blink-right {
+            animation: blink 2s infinite;
+            transition: all 0.3s ease;
+          }
+        </style>
+      </button>
+</div>
+</body>
+</html> 

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的 - AI待办</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.303.0/font/lucide.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-purple-100 via-blue-50 to-yellow-50 min-h-screen flex flex-col">
+    <!-- iPhone状态栏模拟（极简黑色风格） -->
+    <div class="flex items-center justify-between px-5 pt-6 pb-2">
+        <div class="text-black text-[20px] font-bold font-sans">9:41</div>
+        <div class="flex items-center gap-2">
+            <!-- 信号 -->
+            <svg class="w-7 h-5" viewBox="0 0 28 20" fill="none"><rect x="0.5" y="14.5" width="2.5" height="4.5" rx="1.25" fill="#111"/><rect x="5" y="11" width="2.5" height="8" rx="1.25" fill="#111"/><rect x="9.5" y="7.5" width="2.5" height="11.5" rx="1.25" fill="#111"/><rect x="14" y="4" width="2.5" height="15" rx="1.25" fill="#111"/></svg>
+            <!-- WiFi -->
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none"><path d="M2 8.82C7.06 4.4 16.94 4.4 22 8.82" stroke="#111" stroke-width="2" stroke-linecap="round"/><path d="M5.5 12.5C8.54 10.04 15.46 10.04 18.5 12.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><path d="M8.5 16.5C10.09 15.17 13.91 15.17 15.5 16.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="19" r="1" fill="#111"/></svg>
+            <!-- 电池 -->
+            <svg class="w-8 h-5" viewBox="0 0 32 16" fill="none"><rect x="1" y="3" width="26" height="10" rx="3" fill="#fff" stroke="#111" stroke-width="2"/><rect x="28" y="6" width="3" height="4" rx="1" fill="#111"/><rect x="4" y="6" width="20" height="4" rx="2" fill="#111"/></svg>
+            <!-- AI助手按钮 -->
+            <button id="ai-header-btn" class="ml-2 bg-[#883ae2] hover:bg-purple-700 transition rounded-full w-9 h-9 flex items-center justify-center shadow text-white">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v4"></path>
+                    <path d="M12 18v4"></path>
+                    <path d="m4.93 4.93 2.83 2.83"></path>
+                    <path d="m16.24 16.24 2.83 2.83"></path>
+                    <path d="M2 12h4"></path>
+                    <path d="M18 12h4"></path>
+                    <path d="m4.93 19.07 2.83-2.83"></path>
+                    <path d="m16.24 7.76 2.83-2.83"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- 滑动主内容区域 -->
+    <div class="flex-1 overflow-y-auto pb-32">
+        <!-- 顶部标题和日期 -->
+        <div class="px-6 mt-2 mb-2">
+            <div class="text-gray-400 text-xs">5月21日 星期三</div>
+            <div class="text-3xl font-extrabold text-gray-900 mt-1 mb-2">我的</div>
+        </div>
+        <!-- 任务完成率卡片 -->
+        <div class="px-4 mt-2">
+            <div class="bg-white rounded-xl shadow p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="text-lg font-bold text-gray-800">《私人项目》</div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex flex-col items-start">
+                        <div class="flex items-end gap-1">
+                            <div class="text-4xl font-bold text-purple-600">85%</div>
+                            <span class="text-xs text-gray-400 mb-1">完成率</span>
+                        </div>
+                    </div>
+                    <div class="w-24 h-24 relative">
+                        <svg class="w-full h-full" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#f3f4f6" stroke-width="10"/>
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#9333ea" stroke-width="10" stroke-dasharray="283" stroke-dashoffset="42"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 灵感想法卡片 -->
+        <div class="px-4 mt-4">
+            <div class="bg-white rounded-xl shadow p-4 relative">
+                <div>
+                    <div class="text-lg font-bold text-gray-800 mb-1">灵感想法</div>
+                    <div class="text-sm text-gray-500">记录你的灵感，随时随地捕捉创意。</div>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 absolute top-4 right-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+        </div>
+        <!-- 我的挑战卡片 -->
+        <div class="px-4 mt-4">
+            <div class="bg-white rounded-xl shadow p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="text-lg font-bold text-gray-800">《我的挑战》</div>
+                </div>
+                <div class="text-sm text-gray-500 mb-1">累计参与5个挑战</div>
+                <div class="text-sm text-gray-500 mb-1">已完成24个任务</div>
+                <!-- 我参加的挑战 -->
+                <div class="space-y-3">
+                    <!-- 挑战卡片1 -->
+                    <div class="bg-white rounded-xl shadow p-3 flex flex-col gap-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full">#健身</span>
+                            <span class="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">免费</span>
+                        </div>
+                        <div class="font-semibold text-base text-gray-800 mb-0.5">《30天居家健身挑战》</div>
+                        <div class="text-xs text-gray-500 mb-1">适合初学者的全身锻炼计划，零器械，每天30分钟。</div>
+                        <div class="flex gap-2 mt-1">
+                            <button class="flex-1 py-1.5 rounded-lg bg-white text-purple-600 text-xs font-medium flex items-center justify-center gap-1 shadow hover:bg-gray-50 border border-purple-200">✓挑战中</button>
+                            <button class="flex-1 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-medium flex items-center justify-center gap-1 shadow hover:from-purple-600"><i class="lucide-user-plus"></i> 邀请好友</button>
+                        </div>
+                        <!-- 共同任务进度 -->
+                        <div class="mt-2 bg-purple-50 rounded-lg p-2">
+                            <div class="flex items-center gap-1 mb-1">
+                                <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-5 h-5 rounded-full border-2 border-white -ml-1">
+                                <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-5 h-5 rounded-full border-2 border-white -ml-2">
+                                <span class="text-xs text-purple-600 font-medium ml-1">张伟、赵丽正在进行中</span>
+                            </div>
+                            <div class="w-full bg-purple-100 h-1.5 rounded-full overflow-hidden">
+                                <div class="bg-purple-500 h-1.5 rounded-full" style="width: 60%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-400 mt-0.5">
+                                <span>已完成 6/10</span>
+                                <span>60%</span>
+                            </div>
+                        </div>
+                        <!-- 底部信息 -->
+                        <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 text-xs text-gray-400">
+                            <div class="flex items-center gap-1"><i class="lucide-users w-4 h-4"></i> 1,234人引用</div>
+                            <div class="flex items-center gap-1"><img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-5 h-5 rounded-full"> 王小明</div>
+                        </div>
+                    </div>
+                    <!-- 挑战卡片2 -->
+                    <div class="bg-white rounded-xl shadow p-3 flex flex-col gap-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">#学习</span>
+                            <span class="text-xs bg-orange-100 text-orange-500 px-2 py-0.5 rounded-full">¥10</span>
+                        </div>
+                        <div class="font-semibold text-base text-gray-800 mb-0.5">《高效英语学习法》</div>
+                        <div class="text-xs text-gray-500 mb-1">科学分阶段，助你30天突破英语口语瓶颈。</div>
+                        <div class="flex gap-2 mt-1">
+                            <button class="flex-1 py-1.5 rounded-lg bg-white text-blue-600 text-xs font-medium flex items-center justify-center gap-1 shadow hover:bg-gray-50 border border-blue-200">✓挑战中</button>
+                            <button class="flex-1 py-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-medium flex items-center justify-center gap-1 shadow hover:from-blue-600"><i class="lucide-user-plus"></i> 邀请好友</button>
+                        </div>
+                        <!-- 共同任务进度 -->
+                        <div class="mt-2 bg-blue-50 rounded-lg p-2">
+                            <div class="flex items-center gap-1 mb-1">
+                                <img src="https://randomuser.me/api/portraits/men/12.jpg" class="w-5 h-5 rounded-full border-2 border-white -ml-1">
+                                <img src="https://randomuser.me/api/portraits/women/22.jpg" class="w-5 h-5 rounded-full border-2 border-white -ml-2">
+                                <span class="text-xs text-blue-600 font-medium ml-1">张伟、赵丽正在进行中</span>
+                            </div>
+                            <div class="w-full bg-blue-100 h-1.5 rounded-full overflow-hidden">
+                                <div class="bg-blue-500 h-1.5 rounded-full" style="width: 30%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-400 mt-0.5">
+                                <span>已完成 3/10</span>
+                                <span>30%</span>
+                            </div>
+                        </div>
+                        <!-- 底部信息 -->
+                        <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 text-xs text-gray-400">
+                            <div class="flex items-center gap-1"><i class="lucide-users w-4 h-4"></i> 2,021人引用</div>
+                            <div class="flex items-center gap-1"><img src="https://randomuser.me/api/portraits/men/12.jpg" class="w-5 h-5 rounded-full"> 张伟</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 好友排行榜区域，单独加高并可滚动 -->
+        <div class="px-4 mt-4">
+            <div class="bg-white rounded-xl shadow p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="text-lg font-bold text-gray-800">好友排行榜</div>
+                </div>
+                <div class="max-h-[340px] overflow-y-auto pr-2">
+                    <!-- 示例排行榜内容 -->
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                        <div class="flex items-center gap-2"><span class="text-purple-600 font-bold">1</span><img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-7 h-7 rounded-full">王小明</div>
+                        <span class="text-gray-700 font-semibold">1200分</span>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                        <div class="flex items-center gap-2"><span class="text-purple-600 font-bold">2</span><img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-7 h-7 rounded-full">李小红</div>
+                        <span class="text-gray-700 font-semibold">1100分</span>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 bg-purple-50 rounded-lg">
+                        <div class="flex items-center gap-2"><span class="text-purple-600 font-bold">3</span><img src="https://randomuser.me/api/portraits/men/12.jpg" class="w-7 h-7 rounded-full">我自己</div>
+                        <span class="text-purple-700 font-bold">980分</span>
+                    </div>
+                    <!-- 更多好友... -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 底部导航栏（统一样式） -->
+    <div class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] bg-purple-100/60 backdrop-blur rounded-full shadow-lg flex justify-between items-center px-10 py-3 z-20" style="box-shadow: 0 8px 32px 0 rgba(139,92,246,0.10);">
+        <svg class="w-7 h-7 text-purple-500 drop-shadow-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <svg class="w-7 h-7 text-purple-500 drop-shadow-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <div class="relative -mt-10 z-10">
+            <button class="bg-[#9333ea] hover:bg-purple-700 transition rounded-full w-14 h-14 flex items-center justify-center shadow-xl border-4 border-white text-3xl px-0" style="box-shadow: 0 8px 32px 0 rgba(139,92,246,0.18);">
+                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none">
+                    <g stroke="#fff" stroke-width="2" stroke-linecap="round">
+                        <line x1="12" y1="3" x2="12" y2="6"/>
+                        <line x1="12" y1="18" x2="12" y2="21"/>
+                        <line x1="4.93" y1="4.93" x2="7.05" y2="7.05"/>
+                        <line x1="16.95" y1="16.95" x2="19.07" y2="19.07"/>
+                        <line x1="3" y1="12" x2="6" y2="12"/>
+                        <line x1="18" y1="12" x2="21" y2="12"/>
+                        <line x1="4.93" y1="19.07" x2="7.05" y2="16.95"/>
+                        <line x1="16.95" y1="7.05" x2="19.07" y2="4.93"/>
+                    </g>
+                </svg>
+            </button>
+        </div>
+        <svg class="w-7 h-7 text-purple-500 drop-shadow-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        <svg class="w-7 h-7 text-purple-500 drop-shadow-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+    </div>
+</body>
+</html> 

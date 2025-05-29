@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>挑战详情 - AI待办</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-purple-100 via-blue-50 to-yellow-50 min-h-screen flex flex-col">
+    <!-- 顶部返回栏 -->
+    <div class="bg-white/80 px-4 py-3 flex items-center justify-between shadow-sm rounded-b-2xl">
+        <button onclick="window.history.back()" class="p-2 rounded-full hover:bg-gray-100">
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <h1 class="text-xl font-semibold">挑战详情</h1>
+        <span class="w-8"></span>
+    </div>
+    <!-- 占位内容 -->
+    <div class="flex-1 flex flex-col items-stretch px-4 py-4 gap-4">
+        <!-- 头图 -->
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" class="w-full h-40 object-cover rounded-2xl shadow mb-2" alt="挑战头图">
+        <!-- 挑战名和标签 -->
+        <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+                <span class="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full">#健身</span>
+                <span class="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">免费</span>
+                <span class="text-xs text-yellow-500 flex items-center ml-1">★4.9</span>
+            </div>
+            <div class="text-2xl font-extrabold text-gray-900">《30天居家健身挑战》</div>
+        </div>
+        <!-- 简介 -->
+        <div class="text-sm text-gray-600 mb-2">适合初学者的全身锻炼计划，零器械，每天30分钟。</div>
+        <!-- 进度条与参与人数 -->
+        <div class="bg-purple-50 rounded-xl p-3 flex flex-col gap-2">
+            <div class="flex items-center gap-2 mb-1">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-6 h-6 rounded-full border-2 border-white -ml-1">
+                <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-6 h-6 rounded-full border-2 border-white -ml-2">
+                <span class="text-xs text-purple-600 font-medium ml-1">张伟、赵丽正在进行中</span>
+                <span class="ml-auto text-xs text-gray-400">1,234人参与</span>
+            </div>
+            <div class="w-full bg-purple-100 h-2 rounded-full overflow-hidden">
+                <div class="bg-purple-500 h-2 rounded-full" style="width: 60%"></div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400 mt-0.5">
+                <span>已完成 6/10</span>
+                <span>60%</span>
+            </div>
+        </div>
+        <!-- 排行榜 -->
+        <div class="bg-white rounded-xl shadow p-4 flex flex-col gap-3 mt-2">
+            <div class="text-base font-bold text-gray-800 mb-2">挑战排行榜</div>
+            <div class="flex items-center gap-3">
+                <span class="text-xl font-bold text-yellow-500">🥇</span>
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-8 h-8 rounded-full border-2 border-yellow-300">
+                <span class="font-semibold text-gray-900">王小明</span>
+                <span class="ml-auto text-purple-600 font-bold">92%</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xl font-bold text-gray-400">🥈</span>
+                <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-8 h-8 rounded-full border-2 border-gray-300">
+                <span class="font-semibold text-gray-900">赵丽</span>
+                <span class="ml-auto text-purple-600 font-bold">88%</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xl font-bold text-orange-500">🥉</span>
+                <img src="https://randomuser.me/api/portraits/men/12.jpg" class="w-8 h-8 rounded-full border-2 border-orange-300">
+                <span class="font-semibold text-gray-900">张伟</span>
+                <span class="ml-auto text-purple-600 font-bold">80%</span>
+            </div>
+        </div>
+        <!-- 时间安排 -->
+        <div class="bg-white rounded-xl shadow p-4 flex flex-col gap-2">
+            <div class="text-base font-bold text-gray-800 mb-2">时间安排</div>
+            <div class="relative flex flex-col gap-6">
+                <!-- 时间轴竖线 -->
+                <div class="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-200 to-purple-100 z-0"></div>
+                <!-- Day 1 -->
+                <div class="relative flex items-start gap-4">
+                    <div class="flex flex-col items-center z-10 min-w-[48px]">
+                        <div class="flex-1"></div>
+                        <div class="w-4 h-4 rounded-full bg-white border-2 border-purple-400"></div>
+                        <span class="text-xs text-purple-400 mt-1">Day 1</span>
+                        <div class="flex-1"></div>
+                    </div>
+                    <div class="flex-1 bg-purple-50 rounded-2xl shadow p-3 flex flex-col gap-1 self-center min-w-0">
+                        <div class="flex items-center gap-2 mb-1 min-w-0">
+                            <span class="font-semibold text-gray-900 text-base truncate whitespace-nowrap overflow-hidden max-w-[60vw]">全身减脂 + 腰腹塑形入门 · 持久燃脂</span>
+                            <span class="ml-auto text-xs bg-purple-100 text-purple-600 rounded-full px-2 py-0.5 truncate whitespace-nowrap max-w-[24vw]">K1 零基础</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs text-gray-500 whitespace-nowrap">
+                            <span>22 分钟</span>
+                            <span>119 千卡</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Day 2 -->
+                <div class="relative flex items-start gap-4">
+                    <div class="flex flex-col items-center z-10 min-w-[48px]">
+                        <div class="flex-1"></div>
+                        <div class="w-4 h-4 rounded-full bg-white border-2 border-purple-400"></div>
+                        <span class="text-xs text-purple-400 mt-1">Day 2</span>
+                        <div class="flex-1"></div>
+                    </div>
+                    <div class="flex-1 bg-purple-50 rounded-2xl shadow p-3 flex flex-col gap-1 self-center min-w-0">
+                        <div class="flex items-center gap-2 mb-1 min-w-0">
+                            <span class="font-semibold text-gray-900 text-base truncate whitespace-nowrap overflow-hidden max-w-[60vw]">全身减脂 + 腰腹塑形入门 · 持久燃脂</span>
+                            <span class="ml-auto text-xs bg-purple-100 text-purple-600 rounded-full px-2 py-0.5 truncate whitespace-nowrap max-w-[24vw]">K1 零基础</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs text-gray-500 whitespace-nowrap">
+                            <span>22 分钟</span>
+                            <span>119 千卡</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 可继续添加更多Day -->
+            </div>
+        </div>
+        <!-- 按钮区 -->
+        <div class="flex gap-3 mt-4">
+            <button class="flex-1 py-2 rounded-lg bg-white text-purple-600 border border-purple-500 font-bold text-base flex items-center justify-center gap-1 shadow hover:bg-purple-50 transition">+加入挑战</button>
+            <button class="flex-1 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white text-base font-bold flex items-center justify-center gap-1 shadow hover:from-purple-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 12H9m0 0V6m0 6v6"/></svg> 邀请好友</button>
+        </div>
+    </div>
+</body>
+</html> 

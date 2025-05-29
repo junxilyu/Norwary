@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页 - AI待办</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+    @keyframes fadeInUpAI {
+      0% { opacity: 0; transform: translateY(40px) scale(0.98); }
+      60% { opacity: 1; transform: translateY(-4px) scale(1.01); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .animate-fade-in-ai {
+      animation: fadeInUpAI 0.7s cubic-bezier(.23,1.02,.45,.99);
+    }
+    @keyframes borderGlowAI {
+      0% { box-shadow: 0 0 0 0 #a78bfa44, 0 2px 8px #e9d5ff; border-color: #a78bfa; }
+      50% { box-shadow: 0 0 12px 2px #a78bfa88, 0 2px 16px #c4b5fd; border-color: #a78bfa; }
+      100% { box-shadow: 0 0 0 0 #a78bfa44, 0 2px 8px #e9d5ff; border-color: #a78bfa; }
+    }
+    .border-animate-ai {
+      animation: borderGlowAI 1.6s cubic-bezier(.4,0,.2,1) 1;
+      border: 1.5px solid #a78bfa !important;
+    }
+    /* 未完成 */
+    .complete-btn[data-complete="false"] {
+      border-color: #a78bfa;
+      background: #fff;
+    }
+    .complete-btn[data-complete="false"]::after {
+      content: '';
+      display: block;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: transparent;
+    }
+
+    /* 完成 */
+    .complete-btn[data-complete="true"] {
+      background: #a78bfa;
+      border-color: #a78bfa;
+    }
+    .complete-btn[data-complete="true"]::after {
+      content: '';
+      display: block;
+      width: 16px; height: 16px;
+      background: url('data:image/svg+xml;utf8,<svg fill=\"none\" stroke=\"white\" stroke-width=\"3\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M5 13l4 4L19 7\"/></svg>') center/contain no-repeat;
+    }
+
+    .tab-underline {
+    position: absolute;
+    bottom: 0;
+    height: 2px;
+    transition: left 0.2s, width 0.2s;
+  }
+  .tab-underline-inner {
+    width: 100%;
+    height: 100%;
+    background-color: #9d5aef;
+    border-radius: 9999px;
+  }
+
+
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+  <div class="phone-mock flex flex-col w-full max-w-[430px] h-[844px] mx-auto rounded-[40px] overflow-hidden bg-gray-50 shadow-xl">
+    <!-- 顶部固定区域 -->
+    <div class="sticky top-0 z-10 bg-white">
+      <!-- iPhone状态栏模拟（极简黑色风格） -->
+      <div class="flex items-center justify-between px-5 pt-6 pb-2">
+          <div class="text-black text-[20px] font-bold font-sans">9:41</div>
+          <div class="flex items-center gap-2">
+              <!-- 信号 -->
+              <svg class="w-7 h-5" viewBox="0 0 28 20" fill="none"><rect x="0.5" y="14.5" width="2.5" height="4.5" rx="1.25" fill="#111"/><rect x="5" y="11" width="2.5" height="8" rx="1.25" fill="#111"/><rect x="9.5" y="7.5" width="2.5" height="11.5" rx="1.25" fill="#111"/><rect x="14" y="4" width="2.5" height="15" rx="1.25" fill="#111"/></svg>
+              <!-- WiFi -->
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none"><path d="M2 8.82C7.06 4.4 16.94 4.4 22 8.82" stroke="#111" stroke-width="2" stroke-linecap="round"/><path d="M5.5 12.5C8.54 10.04 15.46 10.04 18.5 12.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><path d="M8.5 16.5C10.09 15.17 13.91 15.17 15.5 16.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="19" r="1" fill="#111"/></svg>
+              <!-- 电池 -->
+              <svg class="w-8 h-5" viewBox="0 0 32 16" fill="none"><rect x="1" y="3" width="26" height="10" rx="3" fill="#fff" stroke="#111" stroke-width="2"/><rect x="28" y="6" width="3" height="4" rx="1" fill="#111"/><rect x="4" y="6" width="20" height="4" rx="2" fill="#111"/></svg>
+          </div>
+      </div>
+
+      <!-- 顶部导航栏（侧边栏+tab+搜索按钮） -->
+      <div class="flex items-center w-full px-4 pt- pb-2 bg-white">
+        <!-- 侧边栏按钮 -->
+        <button id="sidebar-btn" class="mr-2 flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100">
+          <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <!-- Tab栏（待办、灵感、记账） -->
+        <div class="tab-container flex-1 flex items-center justify-center relative bg-white" style="height:40px;">
+          <button class="flex-1 h-full flex items-center justify-center bg-transparent text-gray-400 text-base border-0 tab-btn" id="tab-task">待办</button>
+          <button class="flex-1 h-full flex items-center justify-center bg-transparent text-gray-400 text-base border-0 tab-btn" id="tab-idea">灵感</button>
+          <button class="flex-1 h-full flex items-center justify-center bg-transparent text-gray-400 text-base border-0 tab-btn" id="tab-bill">记账</button>
+          <div class="absolute left-0 bottom-0 w-1/3 flex justify-center tab-underline" style="height:0;transition:left 0.2s;left: 2%;">
+            <div class="w-8 h-1 bg-purple-600 rounded-full"></div>
+          </div>
+        </div>
+        <!-- 搜索按钮 -->
+        <button id="top-search-bar" class="ml-2 flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100">
+          <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- 侧边栏抽屉 -->
+      <div id="sidebar-drawer" class="fixed inset-0 z-[200] bg-black/60 hidden">
+        <div class="absolute left-0 top-0 bottom-0 w-[80vw] max-w-[340px] bg-[#19191c] rounded-r-2xl shadow-2xl flex flex-col p-6 gap-6" style="min-width:260px;">
+          <div class="text-white text-lg font-bold mb-2 flex items-center gap-2">
+            <span id="sidebar-time">9:41</span>
+          </div>
+          <div class="flex flex-col gap-3">
+            <div class="bg-[#23232a] rounded-xl p-4 flex flex-col gap-4">
+              <button class="flex items-center gap-3 text-white text-base font-normal"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>发现好友</button>
+            </div>
+            <div class="bg-[#23232a] rounded-xl p-4 flex flex-col gap-4">
+              <button class="flex items-center gap-3 text-white text-base font-normal"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>创作者中心</button>
+            </div>
+            <div class="bg-[#23232a] rounded-xl p-4 flex flex-col gap-4">
+              <button class="flex items-center gap-3 text-white text-base font-normal"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>我的草稿</button>
+              <button class="flex items-center gap-3 text-white text-base font-normal"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><path d="M8 11h8"/></svg>我的评论</button>
+              <button class="flex items-center gap-3 text-white text-base font-normal"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>浏览记录</button>
+            </div>
+            <div class="bg-[#23232a] rounded-xl p-4 flex flex-col gap-4">
+              <button class="flex items-center gap-3 text-white text-base font-normal"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/></svg>订单</button>
+              <button class="flex items-center gap-3 text-white text-base font-normal"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>购物车</button>
+              <button class="flex items-center gap-3 text-white text-base font-normal"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/></svg>钱包</button>
+            </div>
+            <div class="bg-[#23232a] rounded-xl p-4 flex flex-col gap-4">
+              <button class="flex items-center gap-3 text-white text-base font-normal"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg>小程序</button>
+              <button class="flex items-center gap-3 text-white text-base font-normal"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M7 12h10"/></svg>社区公约</button>
+            </div>
+          </div>
+          <div class="flex-1"></div>
+          <div class="flex justify-around items-center gap-4 mt-4">
+            <button class="flex flex-col items-center gap-1 text-gray-400"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/></svg><span class="text-xs">扫一扫</span></button>
+            <button class="flex flex-col items-center gap-1 text-gray-400"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg><span class="text-xs">帮助与客服</span></button>
+            <button class="flex flex-col items-center gap-1 text-gray-400"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg><span class="text-xs">设置</span></button>
+          </div>
+        </div>
+      </div>
+
+
+    <!-- Tab切换（待办、灵感、记账） -->
+    <!-- <div class="tab-container flex px-4 mt-2 mb-3 relative bg-gray-50" style="height:40px;margin-left:0px;">
+      <div class="flex items-center gap-1"> 
+        <button class="h-full flex items-center justify-center bg-transparent text-purple-600 font-bold text-base border-0 tab-btn" id="tab-task">待办</button>
+        <button id="add-todo-btn" class="flex items-center justify-center w-7 h-7 rounded-full hover:bg-gray-100">
+          <svg t="1748245629495" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><path d="M544 341.312a32 32 0 0 0-64 0V480H341.312a32 32 0 0 0 0 64H480v138.688a32 32 0 1 0 64 0V544h138.688a32 32 0 1 0 0-64H544V341.312z" fill="#9d5aef"></path><path d="M514.432 74.688h-4.864c-93.44 0-166.912 0-224.192 7.68-58.752 7.872-105.344 24.448-141.952 61.056-36.672 36.608-53.12 83.2-61.056 141.952-7.68 57.28-7.68 130.688-7.68 224.192v4.864c0 93.44 0 166.912 7.68 224.192 7.872 58.752 24.384 105.344 61.056 141.952 36.608 36.608 83.2 53.12 141.952 61.056 57.28 7.68 130.688 7.68 224.192 7.68h4.864c93.44 0 166.912 0 224.192-7.68 58.752-7.872 105.344-24.384 141.952-61.056 36.608-36.608 53.12-83.2 61.056-141.952 7.68-57.28 7.68-130.688 7.68-224.192v-4.864c0-93.44 0-166.912-7.68-224.192-7.872-58.752-24.384-105.344-61.056-141.952-36.608-36.672-83.2-53.12-141.952-61.056-57.28-7.68-130.688-7.68-224.192-7.68z m-325.76 113.92c22.72-22.72 53.568-35.84 105.216-42.816 52.544-7.04 121.664-7.104 218.112-7.104s165.568 0 218.112 7.104c51.648 6.976 82.496 20.096 105.216 42.88 22.784 22.72 35.904 53.568 42.88 105.216 7.04 52.544 7.104 121.664 7.104 218.112s0 165.568-7.104 218.112c-6.976 51.648-20.096 82.496-42.88 105.216-22.72 22.784-53.568 35.904-105.216 42.88-52.544 7.04-121.664 7.104-218.112 7.104s-165.568 0-218.112-7.104c-51.648-6.976-82.496-20.096-105.216-42.88-22.784-22.72-35.904-53.568-42.88-105.216-7.04-52.544-7.104-121.664-7.104-218.112s0-165.568 7.104-218.112c6.976-51.648 20.096-82.496 42.88-105.216z" fill="#9d5aef"></path></svg>
+        </button>
+      </div>
+      <div class="flex items-center gap-1 ml-4">
+        <button class="h-full flex items-center justify-center bg-transparent text-purple-600 font-semibold text-base border-0 tab-btn" id="tab-idea">灵感</button>
+        <button id="add-idea-btn" class="flex items-center justify-center w-7 h-7 rounded-full hover:bg-gray-100">
+          <svg t="1748245629495" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><path d="M544 341.312a32 32 0 0 0-64 0V480H341.312a32 32 0 0 0 0 64H480v138.688a32 32 0 1 0 64 0V544h138.688a32 32 0 1 0 0-64H544V341.312z" fill="#9d5aef"></path><path d="M514.432 74.688h-4.864c-93.44 0-166.912 0-224.192 7.68-58.752 7.872-105.344 24.448-141.952 61.056-36.672 36.608-53.12 83.2-61.056 141.952-7.68 57.28-7.68 130.688-7.68 224.192v4.864c0 93.44 0 166.912 7.68 224.192 7.872 58.752 24.384 105.344 61.056 141.952 36.608 36.608 83.2 53.12 141.952 61.056 57.28 7.68 130.688 7.68 224.192 7.68h4.864c93.44 0 166.912 0 224.192-7.68 58.752-7.872 105.344-24.384 141.952-61.056 36.608-36.608 53.12-83.2 61.056-141.952 7.68-57.28 7.68-130.688 7.68-224.192v-4.864c0-93.44 0-166.912-7.68-224.192-7.872-58.752-24.384-105.344-61.056-141.952-36.608-36.672-83.2-53.12-141.952-61.056-57.28-7.68-130.688-7.68-224.192-7.68z m-325.76 113.92c22.72-22.72 53.568-35.84 105.216-42.816 52.544-7.04 121.664-7.104 218.112-7.104s165.568 0 218.112 7.104c51.648 6.976 82.496 20.096 105.216 42.88 22.784 22.72 35.904 53.568 42.88 105.216 7.04 52.544 7.104 121.664 7.104 218.112s0 165.568-7.104 218.112c-6.976 51.648-20.096 82.496-42.88 105.216-22.72 22.784-53.568 35.904-105.216 42.88-52.544 7.04-121.664 7.104-218.112 7.104s-165.568 0-218.112-7.104c-51.648-6.976-82.496-20.096-105.216-42.88-22.784-22.72-35.904-53.568-42.88-105.216-7.04-52.544-7.104-121.664-7.104-218.112s0-165.568 7.104-218.112c6.976-51.648 20.096-82.496 42.88-105.216z" fill="#9d5aef"></path></svg>
+        </button>
+      </div>
+      <div class="flex items-center gap-1 ml-4">
+        <button class="h-full flex items-center justify-center bg-transparent text-purple-600 font-semibold text-base border-0 tab-btn" id="tab-bill">记账</button>
+        <button id="add-bill-btn" class="flex items-center justify-center w-7 h-7 rounded-full hover:bg-gray-100">
+          <svg t="1748245629495" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><path d="M544 341.312a32 32 0 0 0-64 0V480H341.312a32 32 0 0 0 0 64H480v138.688a32 32 0 1 0 64 0V544h138.688a32 32 0 1 0 0-64H544V341.312z" fill="#9d5aef"></path><path d="M514.432 74.688h-4.864c-93.44 0-166.912 0-224.192 7.68-58.752 7.872-105.344 24.448-141.952 61.056-36.672 36.608-53.12 83.2-61.056 141.952-7.68 57.28-7.68 130.688-7.68 224.192v4.864c0 93.44 0 166.912 7.68 224.192 7.872 58.752 24.384 105.344 61.056 141.952 36.608 36.608 83.2 53.12 141.952 61.056 57.28 7.68 130.688 7.68 224.192 7.68h4.864c93.44 0 166.912 0 224.192-7.68 58.752-7.872 105.344-24.384 141.952-61.056 36.608-36.608 53.12-83.2 61.056-141.952 7.68-57.28 7.68-130.688 7.68-224.192v-4.864c0-93.44 0-166.912-7.68-224.192-7.872-58.752-24.384-105.344-61.056-141.952-36.608-36.672-83.2-53.12-141.952-61.056-57.28-7.68-130.688-7.68-224.192-7.68z m-325.76 113.92c22.72-22.72 53.568-35.84 105.216-42.816 52.544-7.04 121.664-7.104 218.112-7.104s165.568 0 218.112 7.104c51.648 6.976 82.496 20.096 105.216 42.88 22.784 22.72 35.904 53.568 42.88 105.216 7.04 52.544 7.104 121.664 7.104 218.112s0 165.568-7.104 218.112c-6.976 51.648-20.096 82.496-42.88 105.216-22.72 22.784-53.568 35.904-105.216 42.88-52.544 7.04-121.664 7.104-218.112 7.104s-165.568 0-218.112-7.104c-51.648-6.976-82.496-20.096-105.216-42.88-22.784-22.72-35.904-53.568-42.88-105.216-7.04-52.544-7.104-121.664-7.104-218.112s0-165.568 7.104-218.112c6.976-51.648 20.096-82.496 42.88-105.216z" fill="#9d5aef"></path></svg>
+        </button>
+      </div>
+      <div class="absolute bottom-0 left-0 flex items-center gap-1 ml-4 tab-underline" style="width: 80px; height: 0; transition: left 0.2s;margin-left:5px;">
+        <div class="w-4 h-1 bg-purple-600 rounded-full"></div>
+      </div>
+    </div> -->
+
+    </div>
+    <!-- 下方内容区，支持滚动 -->
+    <div class="flex-1 overflow-y-auto" style="height:calc(100%-160px);">
+      <div id="todo-group-list" class="px-4 space-y-4" style="display:block;">
+        <!-- AI总结卡片：待办tab -->
+        <div class="bg-gradient-to-r from-purple-100 to-blue-50 rounded-2xl shadow p-4 flex flex-col gap-0 mt-4">
+          <div class="flex items-center mb-2">
+            <!-- <div class="w-8 h-8 flex items-center justify-center bg-purple-200 rounded-full mr-2">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 2v4M16 2v4"/></svg>
+            </div> -->
+            <span class="font-bold text-purple-700 text-base">待办AI周报</span>
+          </div>
+          <div class="text-sm text-gray-700 leading-relaxed">
+            <!-- 本周待办总结：<br> -->
+            - 完成了2项收件箱任务<br>
+            - 新增电视剧、灵感等分组<br>
+            - 请继续保持高效！
+          </div>
+        </div>
+        <!-- 收件箱分组（默认展开，置顶） -->
+        <div class="bg-white rounded-2xl shadow p-0 overflow-hidden">
+          <div class="flex items-center px-4 py-3 cursor-pointer group-header" data-group="inbox">
+            <span class="text-2xl mr-3">📦</span>
+            <span class="font-bold text-gray-900 flex-1">收件箱</span>
+            <span class="text-gray-900 text-sm mr-2">2</span>
+            <svg class="w-5 h-5 text-gray-900 group-arrow" style="transform:rotate(180deg);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="group-tasks px-4 pb-3">
+            <div class="flex items-start gap-3 py-2 pl-4">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <input class="flex-1 font-medium text-gray-900 bg-transparent border-0 focus:ring-0 rounded px-1 py-1 todo-edit-input" value="收件箱待办1" readonly/>
+              <button class="hidden ml-2 text-white todo-edit-icon"> <svg class="w-5 h-5" t="1748399835438" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2377" width="200" height="200"><path d="M560 800l-10.464-416h-75.072L464 800h96z m-14.144-493.984c9.44-9.312 14.144-20.672 14.144-34.016 0-13.6-4.704-24.992-14.144-34.208A46.784 46.784 0 0 0 512 224c-13.12 0-24.448 4.608-33.856 13.792A45.856 45.856 0 0 0 464 272c0 13.344 4.704 24.704 14.144 34.016 9.408 9.312 20.704 13.984 33.856 13.984 13.12 0 24.448-4.672 33.856-13.984zM512 32C246.912 32 32 246.912 32 512c0 265.088 214.912 480 480 480 265.088 0 480-214.912 480-480 0-265.088-214.912-480-480-480z m0 64c229.76 0 416 186.24 416 416s-186.24 416-416 416S96 741.76 96 512 282.24 96 512 96z" fill="#883ae2" p-id="2378"></path></svg></button>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-4">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <input class="flex-1 font-medium text-gray-900 bg-transparent border-0 focus:ring-0 rounded px-1 py-1 todo-edit-input" value="收件箱待办2" readonly/>
+              <button class="hidden ml-2 text-white todo-edit-icon"> <svg class="w-5 h-5" t="1748399835438" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2377" width="200" height="200"><path d="M560 800l-10.464-416h-75.072L464 800h96z m-14.144-493.984c9.44-9.312 14.144-20.672 14.144-34.016 0-13.6-4.704-24.992-14.144-34.208A46.784 46.784 0 0 0 512 224c-13.12 0-24.448 4.608-33.856 13.792A45.856 45.856 0 0 0 464 272c0 13.344 4.704 24.704 14.144 34.016 9.408 9.312 20.704 13.984 33.856 13.984 13.12 0 24.448-4.672 33.856-13.984zM512 32C246.912 32 32 246.912 32 512c0 265.088 214.912 480 480 480 265.088 0 480-214.912 480-480 0-265.088-214.912-480-480-480z m0 64c229.76 0 416 186.24 416 416s-186.24 416-416 416S96 741.76 96 512 282.24 96 512 96z" fill="#883ae2" p-id="2378"></path></svg></button>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- 我的想法分组（默认展开） -->
+        <div class="bg-white rounded-2xl shadow p-0 overflow-hidden">
+          <div class="flex items-center px-4 py-3 cursor-pointer group-header" data-group="0">
+            <span class="text-2xl mr-3">💡</span>
+            <span class="font-bold text-gray-900 flex-1">我的想法</span>
+            <span class="text-gray-900 text-sm mr-2">6</span>
+            <svg class="w-5 h-5 text-gray-900 group-arrow" style="transform:rotate(180deg);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="group-tasks px-4 pb-3">
+            <div class="flex items-start gap-3 py-2 pl-4">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <div class="flex-1">
+                <div class="font-medium text-gray-900">拓展舒适圈</div>
+                <div class="text-xs text-gray-900">不要沉溺在舒适里。</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-4">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 complete-btn" data-complete="false"></button>
+              <div class="flex-1">
+                <div class="font-medium text-gray-900">先完成再完美 💪</div>
+                <div class="text-xs text-gray-300">现在立刻就行动。</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-4">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 complete-btn" data-complete="false"></button>
+              <div class="flex-1">
+                <div class="font-medium text-gray-900">不带评论的观察 🤔</div>
+                <div class="text-xs text-gray-900">未听取正反双方意见，不妄下断语。</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-4">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 complete-btn" data-complete="false"></button>
+              <div class="flex-1">
+                <div class="font-medium text-gray-900">提高生气的阈值 💪</div>
+                <div class="text-xs text-gray-300">冷静会传染人😏</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-4">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 complete-btn" data-complete="true"></button>
+              <div class="flex-1">
+                <div class="font-medium text-gray-900">有问题就会有答案❗</div>
+                <div class="text-xs text-gray-900">多提问多思考多探索</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-4">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 complete-btn" data-complete="true"></button>
+              <div class="flex-1">
+                <div class="font-medium text-gray-900">保持幽默感😆</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 电视剧分组（默认展开） -->
+        <div class="bg-white rounded-2xl shadow p-0 overflow-hidden">
+          <div class="flex items-center px-4 py-3 cursor-pointer group-header" data-group="tv">
+            <span class="text-2xl mr-3">📺</span>
+            <span class="font-bold text-gray-900 flex-1">电视剧</span>
+            <span class="text-gray-900 text-sm mr-2">9</span>
+            <svg class="w-5 h-5 text-gray-900 group-arrow" style="transform:rotate(180deg);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="group-tasks px-4 pb-3">
+            <div class="flex items-start gap-3 py-2 pl-4">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <input class="flex-1 font-bold text-gray-900 bg-transparent border-0 focus:ring-0 rounded px-0 py-1 todo-edit-input" value="偶像" readonly/>
+              <button class="hidden ml-2 text-white todo-edit-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text></svg></button>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-8">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <input class="flex-1 text-gray-900 bg-transparent border-0 focus:ring-0 rounded px-1 py-1 todo-edit-input" value="古装偶像：《惜花芷》《优酷》" readonly/>
+              <button class="hidden ml-2 text-white todo-edit-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text></svg></button>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-8">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <input class="flex-1 text-gray-900 bg-transparent border-0 focus:ring-0 rounded px-1 py-1 todo-edit-input" value="古装偶像：《狐妖小红娘》《爱奇艺》" readonly/>
+              <button class="hidden ml-2 text-white todo-edit-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text></svg></button>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-4">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <input class="flex-1 font-bold text-gray-900 bg-transparent border-0 focus:ring-0 rounded px-0 py-1 todo-edit-input" value="权谋" readonly/>
+              <button class="hidden ml-2 text-white todo-edit-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text></svg></button>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-8">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <input class="flex-1 text-gray-900 bg-transparent border-0 focus:ring-0 rounded px-1 py-1 todo-edit-input" value="古装权谋：《庆余年2》" readonly/>
+              <button class="hidden ml-2 text-white todo-edit-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text></svg></button>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-8">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <input class="flex-1 text-gray-900 bg-transparent border-0 focus:ring-0 rounded px-1 py-1 todo-edit-input" value="古装权谋：《天盛长歌》DVD版《爱奇艺》" readonly/>
+              <button class="hidden ml-2 text-white todo-edit-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text></svg></button>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-4">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <input class="flex-1 font-bold text-gray-900 bg-transparent border-0 focus:ring-0 rounded px-0 py-1 todo-edit-input" value="综艺" readonly/>
+              <button class="hidden ml-2 text-white todo-edit-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text></svg></button>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-8">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <input class="flex-1 text-gray-900 bg-transparent border-0 focus:ring-0 rounded px-1 py-1 todo-edit-input" value="轻松综艺：《歌手2024》《芒果TV》" readonly/>
+              <button class="hidden ml-2 text-white todo-edit-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text></svg></button>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-8">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <input class="flex-1 text-gray-900 bg-transparent border-0 focus:ring-0 rounded px-1 py-1 todo-edit-input" value="轻松综艺：《恋爱兄妹》" readonly/>
+              <button class="hidden ml-2 text-white todo-edit-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text></svg></button>
+            </div>
+            <div class="flex items-start gap-3 py-2 pl-8">
+              <button class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-purple-500 bg-white complete-btn" data-complete="false"></button>
+              <input class="flex-1 text-gray-900 bg-transparent border-0 focus:ring-0 rounded px-1 py-1 todo-edit-input" value="现代悬疑：《新生》《优酷》" readonly/>
+              <button class="hidden ml-2 text-white todo-edit-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="idea-list" class="px-4 space-y-4" style="display:none;padding-bottom:300px;">
+        <!-- AI总结卡片：灵感tab -->
+        <div class="bg-gradient-to-r from-purple-100 to-blue-50 rounded-2xl shadow p-4 flex flex-col gap-0 mt-4">
+          <div class="flex items-center mb-2">
+            <span class="font-bold text-purple-700 text-base">灵感AI周报</span>
+          </div>
+          <div class="text-sm text-gray-700 leading-relaxed">
+            <!-- 本周灵感总结：<br> -->
+            - 新增4条灵感记录<br>
+            - 主题涵盖AI、读书、自我提升等<br>
+            - 灵感不断，创意无限！
+          </div>
+        </div>
+        <!-- 灵感卡片示例 -->
+        <div class="bg-white rounded-2xl shadow p-4 mb-2">
+          <div class="text-xs text-gray-900 mb-1">置顶 · 2025-02-06 09:46:28</div>
+          <div class="flex flex-wrap gap-2 mb-2">
+            <span class="bg-blue-50 text-blue-500 px-2 py-0.5 rounded text-xs font-semibold">#③兴趣Resource/读书Read/如何阅读一本书</span>
+          </div>
+          <a href="https://sspai.com" class="text-blue-500 text-xs underline mb-1 block">sspai.com...</a>
+          <div class="font-bold text-gray-900 mb-1">I.N.F.O 读书法</div>
+          <div class="text-sm text-gray-800 mb-1">阶段1：阅读摄入信息（Info）</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-4 mb-2">
+          <div class="text-xs text-gray-900 mb-1">2025-05-20 21:02:10</div>
+          <div class="flex flex-wrap gap-2 mb-2">
+            <span class="bg-blue-50 text-blue-500 px-2 py-0.5 rounded text-xs font-semibold">#①领域Area/专业Profession/【AI】</span>
+          </div>
+          <div class="font-bold text-gray-900 mb-1">Cursor使用方式</div>
+          <ul class="list-disc pl-5 text-sm text-gray-800 mb-1">
+            <li>cmd+i：打开AI对话框</li>
+            <li>agent：适合完全不懂代码的同学-常用</li>
+            <li>edit：根据已有的代码进行优化</li>
+            <li>ask：类似于chatGPT的聊天机器人…</li>
+          </ul>
+          <a href="#" class="text-blue-500 text-xs underline">展开</a>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-4 mb-2">
+          <div class="text-xs text-gray-900 mb-1">2025-05-20 20:52:28</div>
+          <div class="flex flex-wrap gap-2 mb-2">
+            <span class="bg-blue-50 text-blue-500 px-2 py-0.5 rounded text-xs font-semibold">#①领域Area/专业Profession/【AI】</span>
+          </div>
+          <div class="text-gray-900 text-sm">国外的cursor和字节跳动的Trae</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-4 mb-2">
+          <div class="text-xs text-gray-900 mb-1">2025-05-13 21:26:43</div>
+          <div class="flex flex-wrap gap-2 mb-2">
+            <span class="bg-blue-50 text-blue-500 px-2 py-0.5 rounded text-xs font-semibold">#①领域Area/自我提升Study/</span>
+            <span class="bg-blue-50 text-blue-500 px-2 py-0.5 rounded text-xs font-semibold">#③兴趣Resource/读书Read/《沃顿商学院最欢迎的7款小课》</span>
+          </div>
+          <div class="font-bold text-gray-900 mb-1">1. 找到决策者，决策者才是最管用的。</div>
+        </div>
+      </div>
+
+      <div id="bill-list" class="px-4 space-y-4" style="display:none;">
+      <!-- AI总结卡片：记账tab -->
+      <div class="bg-gradient-to-r from-purple-100 to-blue-50 rounded-2xl shadow p-4 flex flex-col gap-0 mt-4">
+        <div class="flex items-center mb-2">
+          <span class="font-bold text-purple-700 text-base">记账AI周报</span>
+        </div>
+        <div class="text-sm text-gray-700 leading-relaxed">
+          <!-- 本周记账总结：<br> -->
+          - 共记账5笔，支出与收入明细清晰<br>
+          - 早餐、普拉提、咖啡等日常消费有记录<br>
+          - 理财习惯良好，继续加油！
+        </div>
+      </div>
+    <!-- 记账tab内容区 -->
+    <div id="bill-list" class="px-4 space-y-4 hidden">
+        <!-- 记账流水卡片示例 -->
+      </div>
+      <div class="bg-white rounded-2xl shadow p-4 flex flex-col gap-2">
+        <div class="flex items-center justify-between text-xs text-gray-900 mb-1">
+          <span>2025-05-21</span>
+          <span>今日</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="font-semibold text-gray-900 text-lg">-¥ 18.00 早餐</div>
+          <span class="text-xs text-[#57be6b]">微信</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="font-semibold text-gray-900 text-lg">-¥ 60.00 普拉提</div>
+          <span class="text-xs text-[#1677FF]">支付宝</span>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl shadow p-4 flex flex-col gap-2">
+        <div class="flex items-center justify-between text-xs text-gray-900 mb-1">
+          <span>2025-05-20</span>
+          <span>昨日</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="font-semibold text-gray-900 text-lg">-¥ 32.00 午餐</div>
+          <span class="text-xs text-[#57be6b]">微信</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="font-semibold text-gray-900 text-lg">+¥ 1000.00 收入</div>
+          <span class="text-xs text-[#1677FF]">支付宝</span>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl shadow p-4 flex flex-col gap-2">
+        <div class="flex items-center justify-between text-xs text-gray-900 mb-1">
+          <span>2025-05-19</span>
+          <span>前天</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="font-semibold text-gray-900 text-lg">-¥ 8.00 咖啡</div>
+          <span class="text-xs text-[#57be6b]">微信</span>
+        </div>
+      </div>
+    </div>
+  <!-- </div> -->
+
+      <!-- 新建待办弹窗 -->
+      <div id="add-todo-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+        <div class="rounded-2xl bg-[#23272e] shadow-2xl p-6 w-[340px]">
+          <div class="flex items-center mb-4">
+            <span class="text-white text-xl mr-2">🧾</span>
+            <span class="text-white font-bold mr-2">新建待办</span>
+            <span class="text-gray-400 text-sm">向收件箱快速添加待办事项。</span>
+          </div>
+          <div class="flex items-center mb-4">
+            <span class="text-green-400 text-xl mr-2">📦</span>
+            <span class="text-white font-bold mr-2">新建清单</span>
+            <span class="text-gray-400 text-sm">清单内包括多个待办事项。</span>
+          </div>
+          <button class="mt-4 w-full py-2 rounded-lg bg-gray-700 text-white font-bold" onclick="document.getElementById('add-todo-modal').classList.add('hidden')">关闭</button>
+        </div>
+      </div>
+      <!-- 新建灵感弹窗 -->
+      <div id="add-idea-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+        <div class="rounded-2xl bg-white shadow-2xl p-6 w-[320px]">
+          <div class="text-lg font-bold mb-2 text-purple-600">新建灵感</div>
+          <input type="text" class="w-full border rounded-lg px-3 py-2 mb-4" placeholder="输入灵感内容...">
+          <button class="w-full py-2 rounded-lg bg-purple-600 text-white font-bold" onclick="document.getElementById('add-idea-modal').classList.add('hidden')">关闭</button>
+        </div>
+      </div>
+      <!-- 新建记账弹窗 -->
+      <div id="add-bill-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+        <div class="rounded-2xl bg-white shadow-2xl p-6 w-[320px]">
+          <div class="text-lg font-bold mb-2 text-gray-900">新建记账</div>
+          <input type="text" class="w-full border rounded-lg px-3 py-2 mb-4" placeholder="输入记账内容...">
+          <button class="w-full py-2 rounded-lg bg-green-600 text-white font-bold" onclick="document.getElementById('add-bill-modal').classList.add('hidden')">关闭</button>
+        </div>
+      </div>
+
+    <!-- 事项详情弹窗（与日历页面一致，定制化） -->
+    <div id="inbox-task-detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
+        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl flex flex-col transition-transform duration-300 ease-out" id="inbox-modal-content" style="transform:translateY(100%);">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-2 cursor-grab active:cursor-grabbing"></div>
+            <div class="flex-1 overflow-y-auto px-6 pb-6" id="inbox-modal-card"></div>
+            <!-- 底部固定输入区及prompt -->
+            <div class="sticky bottom-0 left-0 right-0 z-20 bg-white pt-2 pb-4 px-6 border-t border-gray-100">
+              <div class="flex gap-2 overflow-x-auto pb-2">
+                <button class="px-4 py-1.5 rounded-full bg-purple-100 text-purple-600 text-sm font-semibold hover:bg-purple-200 transition whitespace-nowrap">创建日程</button>
+                <button class="px-4 py-1.5 rounded-full bg-purple-100 text-purple-600 text-sm font-semibold hover:bg-purple-200 transition whitespace-nowrap">记录灵感</button>
+                <button class="px-4 py-1.5 rounded-full bg-purple-100 text-purple-600 text-sm font-semibold hover:bg-purple-200 transition whitespace-nowrap">记一笔账</button>
+              </div>
+              <div class="flex items-center bg-gray-50 rounded-full px-4 py-2 shadow-sm mt-2">
+                <input type="text" placeholder="输入AI指令/语音/图片..." class="flex-1 bg-transparent border-0 focus:ring-0 text-sm text-gray-700 placeholder-gray-400 py-2" style="outline:none;">
+                <div class="flex items-center gap-1 ml-2">
+                    <label class="cursor-pointer flex items-center justify-center">
+                        <input type="file" accept="image/*" class="hidden"/>
+                        <svg class="w-6 h-6" style="color:#883ae2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </label>
+                    <button class="flex items-center justify-center">
+                        <svg class="w-6 h-6" style="color:#883ae2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><rect x="9" y="8" width="6" height="8" rx="3"/><path d="M12 16v2"/><path d="M8 12v-1a4 4 0 0 1 8 0v1"/></svg>
+                    </button>
+                    <button class="w-8 h-8 rounded-full bg-[#883ae2] flex items-center justify-center flex-shrink-0 ml-1">
+                        <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+              </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 搜索弹窗浮层 -->
+    <div id="search-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 hidden transform -translate-y-0" >
+      <div class="w-[92vw] max-w-xl rounded-2xl bg-white shadow-2xl p-0 flex flex-col" style="min-width:340px;max-width:400px;min-height:250px;margin-bottom:370px;">
+        <div class="flex items-center px-4 pt-4 pb-2">
+          <div class="flex-1 flex items-center bg-gray-100 rounded-lg px-3 py-2 mr-3">
+            <svg class="w-5 h-5 text-gray-900 mr-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="search-input" type="text" class="flex-1 bg-transparent border-0 focus:ring-0 text-base text-gray-700 placeholder-gray-400 outline-none" placeholder="搜索或询问AI" />
+          </div>
+          <button id="search-cancel" class="text-gray-500 text-base font-semibold">取消</button>
+        </div>
+        <div class="px-4 pt-2 pb-1">
+          <div class="text-xs text-gray-900 mb-2">最近</div>
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2 text-base"><span class="text-xl">🇸🇬</span><span>旅游计划</span></div>
+            <div class="flex items-center gap-2 text-base"><span class="text-xl">⭐</span><span>采购清单</span></div>
+            <div class="flex items-center gap-2 text-base"><span class="text-xl">🕒</span><span>了解 AI Planner for iPhone</span></div>
+            <div class="flex items-center gap-2 text-base"><span class="text-xl">🏋️</span><span>健身</span></div>
+          </div>
+        </div>
+        <div class="px-4 pb-4 pt-2">
+          <div class="text-xs text-gray-300">快速切换列表、查找待办事项、搜索标签…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模拟键盘浮层 -->
+    <div id="search-keyboard" class="fixed left-0 right-0 bottom-0 z-[101] bg-gray-200 rounded-t-2xl shadow-lg px-4 py-4 text-center text-gray-500 text-lg hidden" style="max-width:430px;margin:0 auto;height:266px;">[模拟键盘区域]</div>
+
+    <!-- AI对话弹窗 -->
+    <div id="ai-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden">
+      <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl flex flex-col transition-transform duration-300 ease-out shadow-2xl" id="ai-modal-content" style="transition: transform 0.3s cubic-bezier(0.4, 1.2, 0.4, 1);transform: translateY(0px);height: 520px;max-width:390px;margin:0 auto;">
+        <!-- 下拉条 -->
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-2 cursor-grab active:cursor-grabbing" id="ai-drag-handle"></div>
+        <!-- AI欢迎内容 -->
+        <div class="flex-1 overflow-y-auto px-6 pb-2 pt-2 flex flex-col gap-4">
+          <div class="text-2xl font-bold text-purple-700 mb-1">cc下午好！</div>
+          <div class="text-base text-gray-700 mb-2" style="line-height:2.1;">今天我能为你做些什么？</div>
+          <div class="flex flex-col gap-4">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-purple-100 rounded-full mt-0.5">
+                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 2v4M16 2v4"/></svg>
+              </div>
+              <div class="flex-1">
+                <div class="font-semibold text-gray-900 mb-1">日程管理</div>
+                <div class="text-sm text-gray-500 leading-loose flex flex-col gap-1" style="line-height:2.1;">
+                  <span>📅 扫描课程表创建每周重复的事件。</span>
+                  <span>🔄 将昨天未完成的任务安排到今天。</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-green-100 rounded-full mt-0.5">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg>
+              </div>
+              <div class="flex-1">
+                <div class="font-semibold text-gray-900 mb-1">创建计划</div>
+                <div class="text-sm text-gray-500 leading-loose flex flex-col gap-1" style="line-height:2.1;">
+                  <span>📖 创建本周每天的法语词汇学习任务。</span>
+                  <span>🗺️ 规划两天成都市区之旅包含细节。</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 flex items-center justify-center bg-yellow-100 rounded-full mt-0.5">
+                <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 17a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4V7a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4Z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></svg>
+              </div>
+              <div class="flex-1">
+                <div class="font-semibold text-gray-900 mb-1">信息总结</div>
+                <div class="text-sm text-gray-500 leading-loose flex flex-col gap-1" style="line-height:2.1;">
+                  <span>📝 总结过去一个月的日程、想法、消费。</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+           <!-- AI对话输入框（页面底部，仿微信/小红书样式） -->
+            <div id="ai-bar-modal" class="fixed left-0 w-full flex items-center bg-white rounded-2xl shadow-lg px-4 py-2 z-80 transition-all duration-300" style="z-index: 11;max-width:390px;margin:0 auto;box-shadow:0 4px 48px 0 rgba(200,200,200,0.50);border-radius:24px 24px 0 0;bottom:8px;">
+              <!-- 相机icon -->
+              <button class="flex items-center justify-center mr-3">
+                  <svg class="w-7 h-7 text-black" fill="none" stroke="rgb(136, 58, 226)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                      <rect x="3" y="7" width="18" height="13" rx="3"/>
+                      <circle cx="12" cy="13.5" r="3.5"/>
+                      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+              </button>
+              <!-- 输入框 -->
+              <input id="ai-input" type="text" placeholder="给AI发指令(输入或按住说话)" class="flex-1 bg-white border-0 focus:ring-0 text-base text-gray-700 placeholder-gray-400 py-2 outline-none"/>
+              <!-- 语音icon（标准麦克风样式） -->
+              <button id="voice-btn" class="flex items-center justify-center ml-3">
+                  <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                      <path d="M8 5a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0V5z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <path d="M12 19v4" />
+                      <path d="M8 23h8" />
+                  </svg>
+              </button>
+              <!-- 加号icon -->
+              <button id="plus-btn" class="flex items-center justify-center ml-3">
+                  <svg id="plus-icon" class="w-7 h-7 text-black" fill="none" stroke="rgb(136, 58, 226)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="8" x2="12" y2="16"/>
+                      <line x1="8" y1="12" x2="16" y2="12"/>
+                  </svg>
+                  <svg id="close-icon" class="w-7 h-7 text-black hidden" fill="none" stroke="rgb(136, 58, 226)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="8" y1="8" x2="16" y2="16"/>
+                      <line x1="16" y1="8" x2="8" y2="16"/>
+                  </svg>
+              </button>
+          </div>
+      </div>
+    </div>
+
+   
+
+    <!-- AI悬浮按钮 -->
+    <button class="fixed right-6 bottom-20 w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center group" style="max-width:390px;margin:0 auto; border:2px solid #eee;" id="ai-fab">
+      <svg class="w-10 h-10" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- 左眼 -->
+        <ellipse id="eye-blink-left" cx="16" cy="18" rx="2.2" ry="2.2" fill="#111" class="eye"/>
+        <!-- 右眼 -->
+        <ellipse id="eye-blink-right" cx="32" cy="18" rx="2.2" ry="2.2" fill="#111" class="eye"/>
+        <!-- 鼻子和眉毛 -->
+        <path d="M24 14 Q22 24 28 32" stroke="#111" stroke-width="2" fill="none"/>
+        <!-- 嘴巴 -->
+        <path d="M18 34 L28 34" stroke="#111" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <style>
+        @keyframes blink {
+          0%, 92%, 100% { ry: 2.2; }
+          93%, 97% { ry: 0.3; }
+        }
+        #eye-blink-left,
+        #eye-blink-right {
+          animation: blink 2s infinite;
+          transition: all 0.3s ease;
+        }
+      </style>
+    </button>
+  </div>
+
+  <script>
+
+
+window.addEventListener("DOMContentLoaded", () => {
+    const tabs = document.querySelectorAll(".tab-btn");
+    const underline = document.querySelector(".tab-underline");
+
+    function updateUnderline(tab) {
+      const tabRect = tab.getBoundingClientRect();
+      const containerRect = tab.closest(".tab-container").getBoundingClientRect();
+      const left = tabRect.left - containerRect.left;
+      underline.style.width = `${tabRect.width}px`;
+      underline.style.left = `${left}px`;
+    }
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => {
+        updateUnderline(tab);
+      });
+    });
+
+    // 初始化时默认选中第一个 tab
+    const firstTab = document.querySelector(".tab-btn");
+    if (firstTab) updateUnderline(firstTab);
+  });
+
+
+    // 点击遮罩关闭和取消按钮
+    // inboxModal.addEventListener('click', function(e){
+    //     if(e.target === inboxModal){
+    //         inboxModalContent.style.transform = 'translateY(100%)';
+    //         setTimeout(()=>{
+    //             inboxModal.classList.add('hidden');
+    //             document.body.style.overflow = '';
+    //         }, 300);
+    //     }
+    // });
+
+
+    // Tab切换逻辑
+    const tabTask = document.getElementById('tab-task');
+    const tabIdea = document.getElementById('tab-idea');
+    const tabBill = document.getElementById('tab-bill');
+    const underline = document.querySelector('.tab-underline');
+    const taskList = document.getElementById('todo-group-list');
+    const ideaList = document.getElementById('idea-list');
+    const billList = document.getElementById('bill-list');
+
+    function setTab(idx) {
+        // 更新按钮样式
+        [tabTask, tabIdea, tabBill].forEach((btn, i) => {
+        if(i === idx) {
+            btn.classList.add('font-bold', 'text-purple-600');
+            btn.classList.remove('font-semibold', 'text-gray-400');
+        } else {
+            btn.classList.remove('font-bold', 'text-purple-600');
+            btn.classList.add('font-semibold', 'text-gray-400');
+        }
+    });
+
+        // 更新下划线位置
+        underline.style.left = `${idx * 33.3333}%`;
+
+        // 更新内容显示
+        taskList.style.display = idx === 0 ? 'block' : 'none';
+        ideaList.style.display = idx === 1 ? 'block' : 'none';
+        billList.style.display = idx === 2 ? 'block' : 'none';
+    }
+
+    // 为每个标签按钮添加点击事件
+    tabTask.addEventListener('click', () => setTab(0));
+    tabIdea.addEventListener('click', () => setTab(1));
+    tabBill.addEventListener('click', () => setTab(2));
+
+    // 默认选中待办标签
+    setTab(0);
+
+
+    // 搜索弹窗交互
+    const searchModal = document.getElementById('search-modal');
+    const searchKeyboard = document.getElementById('search-keyboard');
+    const topSearchBar = document.getElementById('top-search-bar');
+    const searchInput = document.getElementById('search-input');
+    const searchCancel = document.getElementById('search-cancel');
+
+    // 顶部搜索框点击弹出搜索弹窗和模拟键盘
+    if(topSearchBar) {
+      topSearchBar.onclick = function(e) {
+        searchModal.classList.remove('hidden');
+        searchKeyboard.classList.remove('hidden');
+        setTimeout(()=>{ searchInput && searchInput.focus(); }, 100);
+        e.stopPropagation();
+      };
+    }
+    // 点击取消按钮关闭弹窗和键盘
+    if(searchCancel) {
+      searchCancel.onclick = function() {
+        searchModal.classList.add('hidden');
+        searchKeyboard.classList.add('hidden');
+      };
+    }
+    // 点击弹窗外部关闭弹窗和键盘
+    if(searchModal) {
+      searchModal.addEventListener('mousedown', function(e){
+        if(e.target === searchModal){
+          searchModal.classList.add('hidden');
+          searchKeyboard.classList.add('hidden');
+        }
+      });
+    }
+
+    // 侧边栏按钮交互
+const sidebarBtn = document.getElementById('sidebar-btn');
+const sidebarDrawer = document.getElementById('sidebar-drawer');
+sidebarBtn && sidebarBtn.addEventListener('click', function(e) {
+  sidebarDrawer.classList.remove('hidden');
+});
+sidebarDrawer && sidebarDrawer.addEventListener('click', function(e) {
+  if (e.target === sidebarDrawer) {
+    sidebarDrawer.classList.add('hidden');
+  }
+});
+
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.group-header').forEach(function(header){
+        header.addEventListener('click', function(){
+          const group = header.parentElement;
+          const tasks = group.querySelector('.group-tasks');
+          const arrow = header.querySelector('.group-arrow');
+          if(tasks.classList.contains('hidden')){
+            tasks.classList.remove('hidden');
+            arrow.style.transform = 'rotate(180deg)';
+          }else{
+            tasks.classList.add('hidden');
+            arrow.style.transform = '';
+          }
+        });
+      });
+    });
+
+     // 新建弹窗交互，确保DOM渲染后绑定
+     document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('add-todo-btn').onclick = function() {
+    document.getElementById('add-todo-modal').classList.remove('hidden');
+  };
+  document.getElementById('add-idea-btn').onclick = function() {
+    document.getElementById('add-idea-modal').classList.remove('hidden');
+  };
+  document.getElementById('add-bill-btn').onclick = function() {
+    document.getElementById('add-bill-modal').classList.remove('hidden');
+  };
+  document.getElementById('top-search-bar').onclick = function() {
+    document.getElementById('search-modal').classList.remove('hidden');
+  };
+});
+
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const aiFab = document.getElementById('ai-fab');
+      const aiModal = document.getElementById('ai-modal');
+      const aiModalContent = document.getElementById('ai-modal-content');
+      const aiDragHandle = document.getElementById('ai-drag-handle');
+      const aiBarModal = document.getElementById('ai-bar-modal');
+      const aiModalInput = document.getElementById('ai-modal-input');
+      // 打开弹窗
+      aiFab.addEventListener('click', function(e) {
+        aiModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        aiModalContent.style.transform = 'translateY(0)';
+        aiBarModal.style.display = 'flex';
+        setTimeout(()=>{ aiModalInput && aiModalInput.focus(); }, 200);
+      });
+      // 遮罩点击关闭
+      aiModal.addEventListener('click', function(e) {
+        if (e.target === aiModal) {
+          closeAiModal();
+        }
+      });
+      // 下拉关闭
+      aiDragHandle.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+        currentY = startY;
+        aiModalContent.style.transition = '';
+      });
+      aiDragHandle.addEventListener('touchmove', (e) => {
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+        if (deltaY > 0) {
+          aiModalContent.style.transform = `translateY(${deltaY}px)`;
+        }
+      });
+      aiDragHandle.addEventListener('touchend', () => {
+        const deltaY = currentY - startY;
+        aiModalContent.style.transition = 'transform 0.3s cubic-bezier(.4,1.2,.4,1)';
+        if (deltaY > 100) {
+          closeAiModal();
+        } else {
+          aiModalContent.style.transform = 'translateY(0)';
+        }
+      });
+      function closeAiModal() {
+        aiModalContent.style.transition = 'transform 0.3s cubic-bezier(.4,1.2,.4,1)';
+        aiModalContent.style.transform = 'translateY(100%)';
+        aiBarModal.style.display = 'none';
+        setTimeout(() => {
+          aiModal.classList.add('hidden');
+          document.body.style.overflow = '';
+        }, 300);
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // 分组折叠逻辑已存在
+      // 待办编辑交互
+      document.querySelectorAll('.todo-edit-input').forEach(function(input){
+        input.addEventListener('focus', function(){
+          this.removeAttribute('readonly');
+          this.classList.add('ring-2','ring-white');
+          this.nextElementSibling.classList.remove('hidden');
+        });
+        input.addEventListener('blur', function(){
+          this.setAttribute('readonly', true);
+          this.classList.remove('ring-2','ring-white');
+          this.nextElementSibling.classList.add('hidden');
+        });
+      });
+      document.querySelectorAll('.todo-edit-icon').forEach(function(btn){
+        btn.addEventListener('mousedown', function(e){
+          e.preventDefault();
+          const input = this.previousElementSibling;
+          input.blur();
+        });
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // 1. 顶部搜索框点击弹出模拟键盘
+      // document.getElementById('top-search-bar').onclick = function() {
+      //   document.getElementById('search-keyboard').classList.remove('hidden');
+      // };
+
+      // 2. 收件箱待办 input 获得焦点弹出模拟键盘
+      document.querySelectorAll('.todo-edit-input').forEach(function(input){
+        input.addEventListener('focus', function(){
+          document.getElementById('search-keyboard').classList.remove('hidden');
+        });
+        input.addEventListener('blur', function(){
+          document.getElementById('search-keyboard').classList.add('hidden');
+        });
+      });
+    });
+    </script>  
+ <!-- 底部导航栏 -->
+ <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2 flex justify-between items-center" style="max-width:390px;margin:0 auto;">
+  <button class="flex flex-col items-center gap-1">
+      <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+      <span class="text-xs text-purple-600">清单</span>
+  </button>
+  <button class="flex flex-col items-center gap-1">
+      <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      <span class="text-xs text-gray-500">日历</span>
+  </button>
+  <button class="flex flex-col items-center gap-1">
+      <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+      </svg>
+      <span class="text-xs text-gray-500">成就</span>
+  </button>
+  <button class="flex flex-col items-center gap-1">
+      <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+      </svg>
+      <span class="text-xs text-gray-500">社区</span>
+  </button>
+</div>
+</div>
+</body>
+</html> 

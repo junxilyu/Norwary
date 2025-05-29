@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社区 - AI待办</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.303.0/font/lucide.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-purple-100 via-blue-50 to-yellow-50 min-h-screen flex flex-col">
+    <!-- iPhone状态栏模拟（极简黑色风格） -->
+    <div class="flex items-center justify-between px-5 pt-6 pb-2">
+        <div class="text-black text-[20px] font-bold font-sans">9:41</div>
+        <div class="flex items-center gap-2">
+            <!-- 信号 -->
+            <svg class="w-7 h-5" viewBox="0 0 28 20" fill="none"><rect x="0.5" y="14.5" width="2.5" height="4.5" rx="1.25" fill="#111"/><rect x="5" y="11" width="2.5" height="8" rx="1.25" fill="#111"/><rect x="9.5" y="7.5" width="2.5" height="11.5" rx="1.25" fill="#111"/><rect x="14" y="4" width="2.5" height="15" rx="1.25" fill="#111"/></svg>
+            <!-- WiFi -->
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none"><path d="M2 8.82C7.06 4.4 16.94 4.4 22 8.82" stroke="#111" stroke-width="2" stroke-linecap="round"/><path d="M5.5 12.5C8.54 10.04 15.46 10.04 18.5 12.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><path d="M8.5 16.5C10.09 15.17 13.91 15.17 15.5 16.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="19" r="1" fill="#111"/></svg>
+            <!-- 电池 -->
+            <svg class="w-8 h-5" viewBox="0 0 32 16" fill="none"><rect x="1" y="3" width="26" height="10" rx="3" fill="#fff" stroke="#111" stroke-width="2"/><rect x="28" y="6" width="3" height="4" rx="1" fill="#111"/><rect x="4" y="6" width="20" height="4" rx="2" fill="#111"/></svg>
+        </div>
+    </div>
+    <!-- 顶部标题和日期 -->
+    <div class="px-6 mt-2 mb-2 flex items-end gap-6">
+        <div class="flex-1">
+            <!-- <div class="text-gray-400 text-xs mb-4">2025年5月20日 星期二</div> -->
+            <div class="flex items-end gap-6 mt-1 mb-2">
+                <div class="flex items-end gap-6">
+                    <span class="text-base font-semibold cursor-pointer text-black hover:text-purple-600 transition">清单</span>
+                    <span class="text-base font-semibold cursor-pointer text-black hover:text-purple-600 transition">日历</span>
+                    <span class="text-base font-semibold cursor-pointer text-black hover:text-purple-600 transition">我的</span>
+                    <span class="text-3xl font-extrabold cursor-pointer text-black leading-none pb-0.5">社区</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 项目计划列表 -->
+    <div class="flex-1 overflow-y-auto px-2 pb-28 mt-2 space-y-3">
+        <!-- 项目计划卡片1 -->
+        <a href="challenge-detail.html" class="block bg-white rounded-xl shadow p-3 flex flex-col gap-1 transition hover:shadow-lg cursor-pointer">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full">#健身</span>
+                <span class="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">免费</span>
+                <span class="text-xs text-yellow-500 flex items-center ml-1">★4.9</span>
+            </div>
+            <div class="font-semibold text-base text-gray-800 mb-0.5">《30天居家健身挑战》</div>
+            <div class="text-xs text-gray-500 mb-1">适合初学者的全身锻炼计划，零器械，每天30分钟。</div>
+            <div class="flex gap-2 mt-1">
+                <button class="flex-1 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-medium flex items-center justify-center gap-1 shadow hover:from-purple-600">✓挑战中</button>
+                <button class="flex-1 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-medium flex items-center justify-center gap-1 shadow hover:from-purple-600"><i class="lucide-user-plus"></i> 邀请好友</button>
+            </div>
+            <!-- 共同任务进度 -->
+            <div class="mt-2 bg-purple-50 rounded-lg p-2">
+                <div class="flex items-center gap-1 mb-1">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-5 h-5 rounded-full border-2 border-white -ml-1">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-5 h-5 rounded-full border-2 border-white -ml-2">
+                    <span class="text-xs text-purple-600 font-medium ml-1">张伟、赵丽正在进行中</span>
+                </div>
+                <div class="w-full bg-purple-100 h-1.5 rounded-full overflow-hidden">
+                    <div class="bg-purple-500 h-1.5 rounded-full" style="width: 60%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-400 mt-0.5">
+                    <span>已完成 6/10</span>
+                    <span>60%</span>
+                </div>
+            </div>
+            <!-- 底部信息 -->
+            <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 text-xs text-gray-400">
+                <div class="flex items-center gap-1"><i class="lucide-users w-4 h-4"></i> 1,234人引用</div>
+                <div class="flex items-center gap-1"><img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-5 h-5 rounded-full"> 王小明</div>
+            </div>
+        </a>
+        <!-- 项目计划卡片2（付费） -->
+        <a href="challenge-detail.html" class="block bg-white rounded-xl shadow p-3 flex flex-col gap-1 transition hover:shadow-lg cursor-pointer">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">#学习</span>
+                <span class="text-xs bg-orange-100 text-orange-500 px-2 py-0.5 rounded-full">¥10</span>
+                <span class="text-xs text-yellow-500 flex items-center ml-1">★4.8</span>
+            </div>
+            <div class="font-semibold text-base text-gray-800 mb-0.5">《高效英语学习法》</div>
+            <div class="text-xs text-gray-500 mb-1">科学分阶段，助你30天突破英语口语瓶颈。</div>
+            <div class="flex gap-2 mt-1">
+                <button class="flex-1 py-1.5 rounded-lg bg-white text-purple-600 text-xs font-medium flex items-center justify-center gap-1 shadow hover:bg-gray-50 border border-purple-200">¥10加入挑战</button>
+                <button class="flex-1 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-medium flex items-center justify-center gap-1 shadow hover:from-purple-600"><i class="lucide-user-plus"></i> 邀请好友免费挑战</button>
+            </div>
+            <!-- 共同任务进度 -->
+            <div class="mt-2 bg-blue-50 rounded-lg p-2">
+                <div class="flex items-center gap-1 mb-1">
+                    <img src="https://randomuser.me/api/portraits/men/12.jpg" class="w-5 h-5 rounded-full border-2 border-white -ml-1">
+                    <img src="https://randomuser.me/api/portraits/women/22.jpg" class="w-5 h-5 rounded-full border-2 border-white -ml-2">
+                    <span class="text-xs text-blue-600 font-medium ml-1">张伟、赵丽正在进行中</span>
+                </div>
+                <div class="w-full bg-blue-100 h-1.5 rounded-full overflow-hidden">
+                    <div class="bg-blue-500 h-1.5 rounded-full" style="width: 30%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-400 mt-0.5">
+                    <span>已完成 3/10</span>
+                    <span>30%</span>
+                </div>
+            </div>
+            <!-- 底部信息 -->
+            <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 text-xs text-gray-400">
+                <div class="flex items-center gap-1"><i class="lucide-users w-4 h-4"></i> 2,021人引用</div>
+                <div class="flex items-center gap-1"><img src="https://randomuser.me/api/portraits/men/12.jpg" class="w-5 h-5 rounded-full"> 张伟</div>
+            </div>
+        </a>
+        <!-- 项目计划卡片3（无共同任务） -->
+        <a href="challenge-detail.html" class="block bg-white rounded-xl shadow p-3 flex flex-col gap-1 transition hover:shadow-lg cursor-pointer">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full">#旅行</span>
+                <span class="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">免费</span>
+                <span class="text-xs text-yellow-500 flex items-center ml-1">★4.7</span>
+            </div>
+            <div class="font-semibold text-base text-gray-800 mb-0.5">《日本自由行7日攻略》</div>
+            <div class="text-xs text-gray-500 mb-1">详细行程、预算、必打卡景点一应俱全。</div>
+            <div class="flex gap-2 mt-1">
+                <button class="flex-1 py-1.5 rounded-lg bg-white text-pink-600 text-xs font-medium flex items-center justify-center gap-1 shadow hover:bg-gray-50 border border-pink-200">+加入挑战</button>
+                <button class="flex-1 py-1.5 rounded-lg bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-medium flex items-center justify-center gap-1 shadow hover:from-pink-600"><i class="lucide-user-plus"></i> 邀请好友</button>
+            </div>
+            <!-- 底部信息 -->
+            <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 text-xs text-gray-400">
+                <div class="flex items-center gap-1"><i class="lucide-users w-4 h-4"></i> 856人引用</div>
+                <div class="flex items-center gap-1"><img src="https://randomuser.me/api/portraits/women/22.jpg" class="w-5 h-5 rounded-full"> 赵丽</div>
+            </div>
+        </a>
+    </div>
+
+</body>
+</html> 

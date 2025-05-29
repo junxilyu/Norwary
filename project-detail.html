@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目详情 - AI待办</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.303.0/font/lucide.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-purple-100 via-blue-50 to-yellow-50 min-h-screen flex flex-col">
+    <!-- 顶部返回栏 -->
+    <div class="bg-white/80 px-4 py-3 flex items-center justify-between shadow-sm rounded-b-2xl">
+        <button onclick="window.history.back()" class="p-2 rounded-full hover:bg-gray-100">
+            <i class="lucide-chevron-left text-gray-600"></i>
+        </button>
+        <h1 class="text-xl font-semibold">项目详情</h1>
+        <span class="w-8"></span>
+    </div>
+
+    <!-- 项目头部信息 -->
+    <div class="px-6 pt-6 pb-4">
+        <div class="flex items-center gap-2 mb-2">
+            <span class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-full">健身教程</span>
+            <span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">免费</span>
+        </div>
+        <div class="font-bold text-2xl text-gray-800 mb-1">30天居家健身挑战</div>
+        <div class="text-sm text-gray-500 mb-2">适合初学者的全身锻炼计划，零器械，每天30分钟。</div>
+        <div class="flex items-center gap-4 text-xs text-gray-400">
+            <span class="flex items-center gap-1"><i class="lucide-users w-4 h-4"></i> 1,234人引用</span>
+            <span class="flex items-center gap-1"><i class="lucide-user-check w-4 h-4"></i> 参与者 3</span>
+        </div>
+    </div>
+
+    <!-- 任务清单 -->
+    <div class="px-6">
+        <div class="font-semibold text-lg mb-2">任务清单</div>
+        <ul class="space-y-3">
+            <li class="flex items-center gap-2">
+                <input type="checkbox" checked class="accent-purple-500 w-5 h-5 rounded-full">
+                <span class="text-gray-800">第1天：全身热身拉伸</span>
+            </li>
+            <li class="flex items-center gap-2">
+                <input type="checkbox" checked class="accent-purple-500 w-5 h-5 rounded-full">
+                <span class="text-gray-800">第2天：核心训练</span>
+            </li>
+            <li class="flex items-center gap-2">
+                <input type="checkbox" class="accent-purple-500 w-5 h-5 rounded-full">
+                <span class="text-gray-800">第3天：下肢力量</span>
+            </li>
+            <li class="flex items-center gap-2">
+                <input type="checkbox" class="accent-purple-500 w-5 h-5 rounded-full">
+                <span class="text-gray-800">第4天：上肢塑形</span>
+            </li>
+            <li class="flex items-center gap-2">
+                <input type="checkbox" class="accent-purple-500 w-5 h-5 rounded-full">
+                <span class="text-gray-800">第5天：全身拉伸放松</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- 参与者进度 -->
+    <div class="px-6 mt-6">
+        <div class="font-semibold text-lg mb-2">参与者进度</div>
+        <div class="flex items-center gap-2 mb-2">
+            <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-8 h-8 rounded-full border-2 border-white">
+            <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-8 h-8 rounded-full border-2 border-white -ml-3">
+            <img src="https://randomuser.me/api/portraits/men/12.jpg" class="w-8 h-8 rounded-full border-2 border-white -ml-3">
+        </div>
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-700">王小明</span>
+                <span class="text-xs text-purple-500">已完成 3/5</span>
+            </div>
+            <div class="w-full bg-purple-100 h-2 rounded-full overflow-hidden mb-2">
+                <div class="bg-purple-500 h-2 rounded-full" style="width: 60%"></div>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-700">李小红</span>
+                <span class="text-xs text-purple-500">已完成 2/5</span>
+            </div>
+            <div class="w-full bg-purple-100 h-2 rounded-full overflow-hidden mb-2">
+                <div class="bg-purple-400 h-2 rounded-full" style="width: 40%"></div>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-700">我</span>
+                <span class="text-xs text-purple-500">已完成 2/5</span>
+            </div>
+            <div class="w-full bg-purple-100 h-2 rounded-full overflow-hidden">
+                <div class="bg-purple-300 h-2 rounded-full" style="width: 40%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="px-6 mt-6 flex flex-col gap-3">
+        <button class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold flex items-center justify-center gap-2 shadow hover:from-purple-600">
+            <i class="lucide-check-circle"></i> 加入挑战
+        </button>
+        <button onclick="document.getElementById('inviteModal').classList.remove('hidden')" class="w-full py-3 rounded-xl bg-white text-purple-500 font-bold flex items-center justify-center gap-2 shadow border border-purple-200 hover:bg-purple-50">
+            <i class="lucide-user-plus"></i> 邀请好友
+        </button>
+    </div>
+
+    <!-- 邀请好友弹窗 -->
+    <div id="inviteModal" class="fixed inset-0 bg-black/30 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-6 w-80 shadow-lg relative">
+            <button onclick="document.getElementById('inviteModal').classList.add('hidden')" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+                <i class="lucide-x"></i>
+            </button>
+            <div class="font-bold text-lg mb-4">邀请好友</div>
+            <div class="space-y-3 mb-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" class="accent-purple-500 w-5 h-5 rounded-full">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-7 h-7 rounded-full">
+                    <span class="text-gray-700">王小明</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" class="accent-purple-500 w-5 h-5 rounded-full">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-7 h-7 rounded-full">
+                    <span class="text-gray-700">李小红</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" class="accent-purple-500 w-5 h-5 rounded-full">
+                    <img src="https://randomuser.me/api/portraits/men/12.jpg" class="w-7 h-7 rounded-full">
+                    <span class="text-gray-700">张伟</span>
+                </label>
+            </div>
+            <button class="w-full py-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold flex items-center justify-center gap-2 shadow hover:from-purple-600">
+                <i class="lucide-user-plus"></i> 确认邀请
+            </button>
+        </div>
+    </div>
+</body>
+</html> 
