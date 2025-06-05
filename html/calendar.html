@@ -67,10 +67,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <!-- Tab栏（待办、灵感、记账） -->
+            <!-- Tab栏（待办、笔记、记账） -->
             <div class="tab-container flex-1 flex items-center justify-center relative bg-white" style="height:40px;">
               <button class="flex-1 h-full flex items-center justify-center bg-transparent text-gray-400 text-base border-0 tab-btn" id="tab-task">待办</button>
-              <button class="flex-1 h-full flex items-center justify-center bg-transparent text-gray-400 text-base border-0 tab-btn" id="tab-idea">灵感</button>
+              <button class="flex-1 h-full flex items-center justify-center bg-transparent text-gray-400 text-base border-0 tab-btn" id="tab-idea">笔记</button>
               <button class="flex-1 h-full flex items-center justify-center bg-transparent text-gray-400 text-base border-0 tab-btn" id="tab-bill">记账</button>
               <div class="absolute left-0 bottom-0 w-1/3 flex justify-center tab-underline" style="height:0;transition:left 0.2s;left: 2%;">
                 <div class="w-8 h-1 bg-purple-600 rounded-full"></div>
@@ -279,7 +279,7 @@
                     <span class="text-xs text-gray-400">《Reading》</span>
                 </div>
                 <div class="font-semibold text-gray-900 text-lg">Read AI Book</div>
-                <div class="text-xs text-gray-500">阅读AI相关书籍，记录灵感。</div>
+                <div class="text-xs text-gray-500">阅读AI相关书籍，记录笔记。</div>
             </div>
         </div>
         <!-- 事项4 -->
@@ -322,7 +322,7 @@
             </div>
             <div class="flex-1 bg-gradient-to-br from-purple-50 to-white rounded-2xl shadow p-4 flex flex-col gap-2 self-center border border-purple-100">
                 <div class="text-sm text-gray-700 leading-relaxed">
-                    今天你记录了两个有趣的灵感，关于童年和思考方法，都很有深度。Keep thinking!
+                    今天你记录了两个有趣的笔记，关于童年和思考方法，都很有深度。Keep thinking!
                 </div>
             </div>
         </div>
@@ -672,7 +672,7 @@
     const ideaList = document.getElementById('calendar-idea-list');
     const billList = document.getElementById('calendar-bill-list');
     const monthCalendar = document.getElementById('month-calendar');
-    let monthTabIdx = 0; // 0:待办 1:灵感 2:记账
+    let monthTabIdx = 0; // 0:待办 1:笔记 2:记账
     let isMonthExpanded = false;
 
     // 月视图内容数据（可根据实际数据替换）
@@ -687,11 +687,11 @@
         31: [{text:'APP', color:'bg-yellow-100 text-yellow-700'}],
         21: [{text:'原型', color:'bg-yellow-100 text-yellow-700'}],
       },
-      // 灵感
+      // 笔记
       {
         3: [{text:'童年', color:'bg-green-100 text-green-700'}],
         8: [{text:'六顶帽子', color:'bg-blue-100 text-blue-700'}],
-        14: [{text:'AI灵感', color:'bg-purple-100 text-purple-700'}],
+        14: [{text:'AI笔记', color:'bg-purple-100 text-purple-700'}],
         20: [{text:'思考', color:'bg-yellow-100 text-yellow-700'}],
       },
       // 记账
@@ -704,6 +704,7 @@
     ];
 
     function generateCalendarDays(tabIdx) {
+        console.log("generateCalendarDays");
       const grid = document.getElementById('calendar-grid');
       grid.innerHTML = '';
       const year = 2025;
@@ -1072,7 +1073,10 @@
         // 点击外部收起月历
         document.addEventListener('mousedown', function(e){
             const cal = document.getElementById('month-calendar');
-            if(!cal.classList.contains('hidden') && !cal.contains(e.target)){
+            const tab = document.getElementById('tab-task');
+            const tabBill = document.getElementById('tab-bill');
+            const tabIdea = document.getElementById('tab-idea');
+            if(!cal.classList.contains('hidden') && !cal.contains(e.target) && !tab.contains(e.target) && !tabBill.contains(e.target) && !tabIdea.contains(e.target)){
                 cal.classList.add('hidden');
             }
         });
